@@ -8,7 +8,7 @@ module.exports = {
     .setDescription('Entsperrt deinen temporären Voice-Kanal'),
 
   async execute(interaction, client) {
-    if (!await checkControlChannel(interaction)) return;
+    if (!await checkControlChannel(interaction, 'unlock')) return;
     const channel = await getTempChannel(interaction);
     if (!channel) return;
 

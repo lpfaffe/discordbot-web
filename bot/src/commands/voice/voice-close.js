@@ -9,7 +9,7 @@ module.exports = {
     .setDescription('Löscht deinen temporären Voice-Kanal'),
 
   async execute(interaction, client) {
-    if (!await checkControlChannel(interaction)) return;
+    if (!await checkControlChannel(interaction, 'close')) return;
     const channel = await getTempChannel(interaction);
     if (!channel) return;
 

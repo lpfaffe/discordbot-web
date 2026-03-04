@@ -72,11 +72,23 @@ const warningSchema = new mongoose.Schema({
 
 // ── Admin ────────────────────────────────────────────────────
 const adminSchema = new mongoose.Schema({
+  superAdmins: [String],
   bannedUsers: [{
     discordId: String,
     username:  String,
     reason:    String,
     bannedAt:  { type: Date, default: Date.now }
+  }],
+  errorReports: [{
+    reportId:  String,
+    userId:    String,
+    username:  String,
+    guildId:   String,
+    message:   String,
+    url:       String,
+    stack:     String,
+    status:    { type: String, default: 'open' },
+    createdAt: { type: Date, default: Date.now }
   }],
   announcements: [{ message: String, createdAt: { type: Date, default: Date.now } }]
 });

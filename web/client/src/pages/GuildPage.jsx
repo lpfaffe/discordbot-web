@@ -66,7 +66,7 @@ export default function GuildPage() {
 
   if (!loading && !user) return <Navigate to="/" />
   if (isLoading) return (
-    <div className="flex items-center justify-center min-h-screen bg-discord-bg">
+    <div className="flex items-center justify-center bg-discord-bg">
       <div className="text-center space-y-3">
         <div className="animate-spin w-12 h-12 border-4 border-discord border-t-transparent rounded-full mx-auto" />
         <p className="text-discord-muted">Lade Server-Daten...</p>
@@ -74,7 +74,7 @@ export default function GuildPage() {
     </div>
   )
   if (error) return (
-    <div className="flex items-center justify-center min-h-screen bg-discord-bg">
+    <div className="flex items-center justify-center bg-discord-bg">
       <div className="text-center space-y-2">
         <p className="text-red-400 text-lg">❌ Fehler beim Laden</p>
         <p className="text-discord-muted text-sm">{error.message}</p>
@@ -98,7 +98,7 @@ export default function GuildPage() {
   const totalCount = ALL_MODULES.length
 
   return (
-    <div className="flex min-h-screen bg-discord-bg">
+    <div className="flex bg-discord-bg">
       <Sidebar guildId={guildId} guildName={guild?.name || 'Server'} />
       <main className="flex-1 overflow-y-auto">
 

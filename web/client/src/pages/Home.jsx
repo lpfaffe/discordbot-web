@@ -13,7 +13,7 @@ export default function Home() {
   const { user, login } = useAuth()
 
   return (
-    <div className="min-h-screen">
+    <div className="w-full">
       {/* Hero */}
       <section className="text-center py-24 px-4">
         <div className="max-w-3xl mx-auto">

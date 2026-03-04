@@ -88,7 +88,7 @@ export default function AdminPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-discord-bg">
+    <div className="bg-discord-bg">
       {/* Header */}
       <div className="bg-gradient-to-r from-red-900/30 to-discord-sidebar border-b border-white/5 px-8 py-6">
         <div className="max-w-6xl mx-auto flex items-center gap-4">

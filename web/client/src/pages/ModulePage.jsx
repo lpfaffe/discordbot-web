@@ -166,7 +166,7 @@ export default function ModulePage() {
   } : null
 
   return (
-    <div className="flex min-h-screen bg-discord-bg">
+    <div className="flex bg-discord-bg">
       <Sidebar guildId={guildId} guildName={guild?.name || '...'} />
       <main className="flex-1 overflow-y-auto">
         {/* Breadcrumb-Header */}

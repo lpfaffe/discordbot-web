@@ -3,7 +3,7 @@ import { FaArrowLeft } from 'react-icons/fa'
 
 export default function ImpressumPage() {
   return (
-    <div className="min-h-screen bg-discord-bg text-white px-6 py-12">
+    <div className="bg-discord-bg text-white px-6 py-12">
       <div className="max-w-3xl mx-auto">
         <Link to="/" className="flex items-center gap-2 text-discord-muted hover:text-white mb-8 text-sm transition">
           <FaArrowLeft /> Zurück

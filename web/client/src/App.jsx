@@ -23,7 +23,7 @@ function AppContent() {
     <div className="min-h-screen bg-discord-bg flex flex-col">
       <CookieBanner />
       <Navbar />
-      <div className="flex-1">
+      <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />

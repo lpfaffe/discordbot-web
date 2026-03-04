@@ -34,7 +34,7 @@ export default function Dashboard() {
   const clientId = import.meta.env.VITE_CLIENT_ID
 
   return (
-    <div className="min-h-screen bg-discord-bg">
+    <div className="bg-discord-bg">
       {/* Hero Header */}
       <div className="bg-gradient-to-br from-discord/20 to-discord-sidebar border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 py-12">

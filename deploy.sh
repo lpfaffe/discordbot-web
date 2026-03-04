@@ -105,18 +105,20 @@ mkdir -p bot/logs web/logs
 
 # 6. PM2 neu starten
 step "Dienste neu starten..."
+# WICHTIG: restart (nicht reload) damit .env neu eingelesen wird!
 if pm2 list 2>/dev/null | grep -q "discord-bot\|web-server"; then
-  pm2 reload ecosystem.config.js --env production
-  info "PM2 neu geladen (Zero-Downtime)"
+  pm2 restart ecosystem.config.js --env production
+  pm2 save
+  info "PM2 neu gestartet (.env wird neu geladen)"
 else
   pm2 start ecosystem.config.js --env production
   pm2 save
   info "PM2 gestartet"
 fi
 
-# 7. Verbindungstest nach 5s
-step "Verbindungstests..."
-sleep 5
+# 7. Verbindungstest nach 10s (Bot braucht Zeit zum Starten)
+step "Verbindungstests (warte 10s auf Bot-Start)..."
+sleep 10
 
 BOT_PORT_TEST=$(grep '^BOT_API_PORT=' bot/.env | cut -d'=' -f2- | tr -d '\r\n')
 BOT_PORT_TEST="${BOT_PORT_TEST:-3002}"

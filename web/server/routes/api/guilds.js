@@ -66,6 +66,32 @@ router.get('/', isAuthenticated, async (req, res) => {
   }
 });
 
+// ── Frische Kanal/Rollen-Daten direkt von Bot-API ─────────────
+// ACHTUNG: Muss VOR /:guildId stehen, damit "channels" nicht als guildId interpretiert wird
+router.get('/:guildId/channels', isAuthenticated, isGuildAdmin, async (req, res) => {
+  try {
+    const { guildId } = req.params;
+    const botRes = await axios.get(`${BOT_API()}/guilds/${guildId}`,
+      { headers: botHeaders(), timeout: 5000 }
+    );
+    const d = botRes.data;
+    res.json({
+      channels:      d.channels      || [],
+      categories:    d.categories    || [],
+      textChannels:  d.textChannels  || [],
+      voiceChannels: d.voiceChannels || [],
+      roles:         d.roles         || [],
+      emojis:        d.emojis        || [],
+    });
+  } catch (e) {
+    console.warn('Bot channels Fehler:', e.message);
+    res.json({
+      error: 'Bot nicht erreichbar.',
+      channels: [], categories: [], textChannels: [], voiceChannels: [], roles: [], emojis: []
+    });
+  }
+});
+
 // ── Eine Guild + Config ────────────────────────────────────────
 router.get('/:guildId', isAuthenticated, isGuildAdmin, async (req, res) => {
   try {
@@ -131,6 +157,7 @@ router.get('/:guildId', isAuthenticated, isGuildAdmin, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ── Guild-Config aktualisieren ─────────────────────────────────
 router.patch('/:guildId', isAuthenticated, isGuildAdmin, async (req, res) => {

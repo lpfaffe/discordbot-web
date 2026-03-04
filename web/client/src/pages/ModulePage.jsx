@@ -107,6 +107,15 @@ export default function ModulePage() {
     enabled: !!user
   })
 
+  // Frische Channel/Rollen-Daten direkt vom Bot holen (immer aktuell)
+  const { data: channelData } = useQuery({
+    queryKey: ['guild-channels', guildId],
+    queryFn: () => api.get(`/guilds/${guildId}/channels`).then(r => r.data).catch(() => null),
+    enabled: !!user && !!guildId,
+    staleTime: 30_000,
+    retry: 1,
+  })
+
   const { data: moduleData, isLoading } = useQuery({
     queryKey: ['module', guildId, module],
     queryFn: () => api.get(`/modules/${guildId}/${module}`).then(r => r.data),
@@ -145,24 +154,23 @@ export default function ModulePage() {
   const isLocked       = (PLAN_LEVEL[currentPlan] ?? 0) < (PLAN_LEVEL[requiredPlan] ?? 0)
   const reqPlanInfo    = PLAN_INFO[requiredPlan] || PLAN_INFO.free
 
-  // botInfo normalisieren: egal ob API schon getrennte Arrays liefert oder noch alles in channels[]
+  // botInfo normalisieren: frische channelData hat Vorrang vor gecachtem guildData.botInfo
   const rawBotInfo = guildData?.botInfo
-  const botInfo = rawBotInfo ? {
-    ...rawBotInfo,
-    // Kategorien (type 4)
-    categories:   rawBotInfo.categories   ?? rawBotInfo.channels?.filter(c => c.type === 4) ?? [],
-    // Text-Kanäle (type 0, 5, 15)
-    textChannels: rawBotInfo.textChannels ?? rawBotInfo.channels?.filter(c => [0,5,15].includes(c.type)) ?? [],
-    // Voice-Kanäle (type 2, 13)
-    voiceChannels: rawBotInfo.voiceChannels ?? rawBotInfo.channels?.filter(c => [2,13].includes(c.type)) ?? [],
-    // channels bleibt als kombiniertes Array für Rückwärtskompatibilität
-    channels: rawBotInfo.channels ?? [
-      ...(rawBotInfo.categories   ?? []),
-      ...(rawBotInfo.textChannels ?? []),
-      ...(rawBotInfo.voiceChannels ?? []),
+  const mergedChannelData = channelData && !channelData.error ? channelData : null
+
+  const botInfo = (rawBotInfo || mergedChannelData) ? {
+    ...(rawBotInfo || {}),
+    // frische channelData überschreibt gecachte botInfo-Daten
+    categories:    mergedChannelData?.categories   ?? rawBotInfo?.categories   ?? rawBotInfo?.channels?.filter(c => c.type === 4)         ?? [],
+    textChannels:  mergedChannelData?.textChannels ?? rawBotInfo?.textChannels ?? rawBotInfo?.channels?.filter(c => [0,5,15].includes(c.type)) ?? [],
+    voiceChannels: mergedChannelData?.voiceChannels?? rawBotInfo?.voiceChannels?? rawBotInfo?.channels?.filter(c => [2,13].includes(c.type))    ?? [],
+    channels: mergedChannelData?.channels ?? rawBotInfo?.channels ?? [
+      ...(rawBotInfo?.categories    ?? []),
+      ...(rawBotInfo?.textChannels  ?? []),
+      ...(rawBotInfo?.voiceChannels ?? []),
     ],
-    roles:   rawBotInfo.roles   ?? [],
-    emojis:  rawBotInfo.emojis  ?? [],
+    roles:  mergedChannelData?.roles  ?? rawBotInfo?.roles  ?? [],
+    emojis: mergedChannelData?.emojis ?? rawBotInfo?.emojis ?? [],
   } : null
 
   return (

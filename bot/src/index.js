@@ -89,13 +89,24 @@ async function start() {
   });
   server.on('error', err => {
     if (err.code === 'EADDRINUSE') {
-      console.warn(`⚠️ Port ${port} bereits belegt – Bot-API läuft möglicherweise bereits.`);
+      console.warn(`⚠️ Port ${port} bereits belegt.`);
     } else {
       console.error('Bot API Fehler:', err);
     }
   });
 
-  await client.login(process.env.DISCORD_TOKEN);
+  // Token trimmen – entfernt \r \n Leerzeichen (Windows .env Problem)
+  const token = (process.env.DISCORD_TOKEN || '').trim();
+  if (!token) {
+    console.error('❌ DISCORD_TOKEN fehlt in bot/.env!');
+    process.exit(1);
+  }
+  console.log(`🔑 Token Länge: ${token.length}, Start: ${token.substring(0, 20)}...`);
+
+  // deployCommands Token auch trimmen
+  process.env.DISCORD_TOKEN = token;
+
+  await client.login(token);
 }
 
 // Commands automatisch beim Start registrieren
@@ -144,4 +155,3 @@ start().then(() => {
 // Verhindert kompletten Crash bei unbehandelten Fehlern
 process.on('unhandledRejection', err => console.error('⚠️ Unhandled Rejection:', err));
 process.on('uncaughtException', err => console.error('⚠️ Uncaught Exception:', err));
-

@@ -38,12 +38,14 @@ fi
 step "Bot-Dependencies..."
 npm install --prefix bot --omit=dev
 
-step "Web-Dependencies..."
+step "Web-Server-Dependencies..."
 npm install --prefix web --omit=dev
+
+step "Web-Client-Dependencies..."
+npm install --prefix web/client
 
 # 4. Frontend bauen
 step "Frontend bauen..."
-npm install --prefix web/client --omit=dev
 npm run build --prefix web/client
 info "Frontend gebaut"
 

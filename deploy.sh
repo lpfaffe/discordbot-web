@@ -103,11 +103,22 @@ info "Frontend gebaut"
 # 5. Log-Verzeichnisse
 mkdir -p bot/logs web/logs
 
+# ── BOT_API_KEY direkt in PM2 env injizieren ─────────────────
+# PM2 reload/restart liest .env manchmal nicht neu – daher setzen wir
+# den Key explizit via 'pm2 set' damit er garantiert ankommt
+step "BOT_API_KEY in PM2 setzen..."
+FINAL_KEY_INJECT=$(grep '^BOT_API_KEY=' bot/.env | cut -d'=' -f2- | tr -d '\r\n')
+if [ -n "$FINAL_KEY_INJECT" ]; then
+  # Setze Key direkt als PM2 env-Variable (wird bei restart übergeben)
+  pm2 set discord-bot:BOT_API_KEY "$FINAL_KEY_INJECT" 2>/dev/null || true
+  info "BOT_API_KEY in PM2 gesetzt"
+fi
+
 # 6. PM2 neu starten
 step "Dienste neu starten..."
 # WICHTIG: restart (nicht reload) damit .env neu eingelesen wird!
 if pm2 list 2>/dev/null | grep -q "discord-bot\|web-server"; then
-  pm2 restart ecosystem.config.js --env production
+  pm2 restart ecosystem.config.js --env production --update-env
   pm2 save
   info "PM2 neu gestartet (.env wird neu geladen)"
 else
@@ -116,27 +127,56 @@ else
   info "PM2 gestartet"
 fi
 
-# 7. Verbindungstest nach 10s (Bot braucht Zeit zum Starten)
-step "Verbindungstests (warte 10s auf Bot-Start)..."
-sleep 10
+# 7. Verbindungstest – mit Retry bis zu 30s warten
+step "Verbindungstests (warte auf Bot-Start, max 30s)..."
 
 BOT_PORT_TEST=$(grep '^BOT_API_PORT=' bot/.env | cut -d'=' -f2- | tr -d '\r\n')
 BOT_PORT_TEST="${BOT_PORT_TEST:-3002}"
 FINAL_KEY=$(grep '^BOT_API_KEY=' bot/.env | cut -d'=' -f2- | tr -d '\r\n')
 
-# Bot-API Test
-BOT_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-  -H "x-api-key: ${FINAL_KEY}" \
-  "http://127.0.0.1:${BOT_PORT_TEST}/status" 2>/dev/null || echo "000")
+# Warte bis Bot-API antwortet (max 30s)
+BOT_STATUS="000"
+for i in 1 2 3 4 5 6; do
+  sleep 5
+  BOT_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+    -H "x-api-key: ${FINAL_KEY}" \
+    "http://127.0.0.1:${BOT_PORT_TEST}/status" 2>/dev/null || echo "000")
+  if [ "$BOT_STATUS" = "200" ] || [ "$BOT_STATUS" = "401" ]; then
+    break
+  fi
+  echo "  ... noch nicht bereit (${i}/6), warte..."
+done
 
 if [ "$BOT_STATUS" = "200" ]; then
   info "Bot-API erreichbar (Port ${BOT_PORT_TEST}) ✅"
 elif [ "$BOT_STATUS" = "401" ]; then
-  error "Bot-API: 401 Unauthorized – BOT_API_KEY stimmt nicht!"
-  echo "  Bot-Key:  $(grep '^BOT_API_KEY=' bot/.env)"
-  echo "  Web-Key:  $(grep '^BOT_API_KEY=' web/.env)"
+  error "Bot-API: 401 Unauthorized – BOT_API_KEY wird vom Bot nicht erkannt!"
+  echo ""
+  echo "  ╔═══════════════════════════════════════════════╗"
+  echo "  ║  LÖSUNG: Bot manuell neu starten              ║"
+  echo "  ║  pm2 stop discord-bot                         ║"
+  echo "  ║  pm2 start discord-bot                        ║"
+  echo "  ╚═══════════════════════════════════════════════╝"
+  echo ""
+  echo "  Bot-Key in bot/.env:  $(grep '^BOT_API_KEY=' bot/.env)"
+  echo "  Web-Key in web/.env:  $(grep '^BOT_API_KEY=' web/.env)"
+  # Trotzdem mit pm2 stop/start versuchen
+  warn "Versuche Bot-Neustart..."
+  pm2 stop discord-bot 2>/dev/null || true
+  sleep 2
+  pm2 start discord-bot --update-env 2>/dev/null || true
+  sleep 8
+  BOT_STATUS2=$(curl -s -o /dev/null -w "%{http_code}" \
+    -H "x-api-key: ${FINAL_KEY}" \
+    "http://127.0.0.1:${BOT_PORT_TEST}/status" 2>/dev/null || echo "000")
+  if [ "$BOT_STATUS2" = "200" ]; then
+    info "Bot-API nach Neustart erreichbar ✅"
+  else
+    error "Immer noch nicht OK (${BOT_STATUS2}). Prüfe: pm2 logs discord-bot"
+  fi
 else
-  warn "Bot-API antwortet nicht (Status: ${BOT_STATUS}) – Bot läuft evtl. noch nicht"
+  warn "Bot-API antwortet nicht (Status: ${BOT_STATUS})"
+  warn "Prüfe: pm2 logs discord-bot"
 fi
 
 # Web-Server Test

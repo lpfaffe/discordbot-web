@@ -5,8 +5,23 @@ app.use(express.json());
 
 // API Key Middleware
 app.use((req, res, next) => {
-  const key = req.headers['x-api-key'];
-  if (key !== process.env.BOT_API_KEY) {
+  const expectedKey = (process.env.BOT_API_KEY || '').trim();
+  const sentKey     = (req.headers['x-api-key'] || '').trim();
+
+  // Debug: Key-Status beim ersten Request loggen
+  if (!app._keyLogged) {
+    app._keyLogged = true;
+    console.log(`🔑 Bot-API Key Status: ${expectedKey ? `gesetzt (${expectedKey.slice(0,8)}...)` : 'NICHT GESETZT – alle Requests erlaubt!'}`);
+  }
+
+  // Wenn kein Key konfiguriert → Warnung aber durchlassen (Fallback)
+  if (!expectedKey) {
+    console.warn('⚠️  BOT_API_KEY nicht gesetzt – API ohne Auth zugänglich!');
+    return next();
+  }
+
+  if (sentKey !== expectedKey) {
+    console.error(`❌ Ungültiger API-Key: erwartet "${expectedKey.slice(0,8)}...", erhalten "${sentKey.slice(0,8) || '(leer)'}..."`);
     return res.status(401).json({ error: 'Unauthorized' });
   }
   next();

@@ -44,11 +44,12 @@ const guildSchema = new mongoose.Schema({
     username:  String,
     role:      { type: String, default: 'viewer' }
   }],
-  modules:  { type: Map, of: Boolean, default: {} },
-  settings: { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
+  // WICHTIG: Mixed damit Module als Objekte { enabled, triggerChannelId, ... } gespeichert werden
+  modules:  { type: mongoose.Schema.Types.Mixed, default: {} },
+  settings: { type: mongoose.Schema.Types.Mixed, default: {} },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
-}, { suppressReservedKeysWarning: true });
+}, { suppressReservedKeysWarning: true, strict: false });
 guildSchema.pre('save', function(next) { this.updatedAt = Date.now(); next(); });
 
 // ── GuildProfile ─────────────────────────────────────────────

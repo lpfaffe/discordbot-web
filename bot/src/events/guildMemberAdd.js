@@ -1,6 +1,6 @@
 const welcomeModule = require('../modules/welcome');
 const inviteTracking = require('../modules/inviteTracking');
-const Guild = require('../models').Guild;
+const { getModuleConfig } = require('../modules/dbHelper');
 
 module.exports = {
   name: 'guildMemberAdd',
@@ -9,14 +9,13 @@ module.exports = {
     await inviteTracking.handleJoin(member);
 
     // AutoRole
-
     try {
-      const guildData = await Guild.findOne({ guildId: member.guild.id });
-      if (!guildData) return;
-      const { autoRole } = guildData.modules.welcome;
-      if (autoRole.enabled && autoRole.roleId) {
+      const welcome = await getModuleConfig(member.guild.id, 'welcome');
+      if (!welcome) return;
+      const autoRole = welcome.autoRole;
+      if (autoRole?.enabled && autoRole?.roleId) {
         const role = member.guild.roles.cache.get(autoRole.roleId);
-        if (role) await member.roles.add(role);
+        if (role) await member.roles.add(role).catch(console.error);
       }
     } catch (err) {
       console.error('AutoRole Fehler:', err);

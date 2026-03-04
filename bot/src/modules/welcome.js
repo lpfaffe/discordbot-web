@@ -1,8 +1,8 @@
 const { EmbedBuilder } = require('discord.js');
-const Guild = require('../models').Guild;
+const { getModuleConfig } = require('./dbHelper');
 
 function replacePlaceholders(text, member, guild) {
-  return text
+  return (text || '')
     .replace(/{user}/g, `<@${member.id}>`)
     .replace(/{username}/g, member.user.username)
     .replace(/{server}/g, guild.name)
@@ -12,12 +12,9 @@ function replacePlaceholders(text, member, guild) {
 
 async function handleJoin(member, client) {
   try {
-    const guildData = await Guild.findOne({ guildId: member.guild.id });
-    if (!guildData || !guildData.modules.welcome.enabled) return;
+    const welcome = await getModuleConfig(member.guild.id, 'welcome');
+    if (!welcome?.enabled) return;
 
-    const { welcome } = guildData.modules;
-
-    // Willkommensnachricht im Channel
     if (welcome.channelId) {
       const channel = member.guild.channels.cache.get(welcome.channelId);
       if (channel) {
@@ -25,19 +22,18 @@ async function handleJoin(member, client) {
           const embed = new EmbedBuilder()
             .setColor(welcome.embedColor || '#5865F2')
             .setTitle(welcome.embedTitle || 'Willkommen!')
-            .setDescription(replacePlaceholders(welcome.embedDescription, member, member.guild))
+            .setDescription(replacePlaceholders(welcome.embedDescription || 'Willkommen!', member, member.guild))
             .setThumbnail(member.user.displayAvatarURL({ size: 256 }))
             .setFooter({ text: `Mitglied #${member.guild.memberCount}` })
             .setTimestamp();
           channel.send({ embeds: [embed] });
         } else {
-          channel.send(replacePlaceholders(welcome.message, member, member.guild));
+          channel.send(replacePlaceholders(welcome.message || 'Willkommen {user}!', member, member.guild));
         }
       }
     }
 
-    // DM Willkommensnachricht
-    if (welcome.dm.enabled && welcome.dm.message) {
+    if (welcome.dm?.enabled && welcome.dm?.message) {
       member.send(replacePlaceholders(welcome.dm.message, member, member.guild)).catch(() => {});
     }
   } catch (err) {
@@ -47,15 +43,15 @@ async function handleJoin(member, client) {
 
 async function handleLeave(member, client) {
   try {
-    const guildData = await Guild.findOne({ guildId: member.guild.id });
-    if (!guildData || !guildData.modules.welcome.enabled) return;
+    const welcome = await getModuleConfig(member.guild.id, 'welcome');
+    if (!welcome?.enabled) return;
 
-    const { goodbye } = guildData.modules.welcome;
-    if (!goodbye.enabled || !goodbye.channelId) return;
+    const goodbye = welcome.goodbye;
+    if (!goodbye?.enabled || !goodbye?.channelId) return;
 
     const channel = member.guild.channels.cache.get(goodbye.channelId);
     if (channel) {
-      const msg = goodbye.message
+      const msg = (goodbye.message || '{user} hat den Server verlassen.')
         .replace(/{user}/g, member.user.username)
         .replace(/{server}/g, member.guild.name)
         .replace(/{count}/g, member.guild.memberCount);
@@ -67,4 +63,3 @@ async function handleLeave(member, client) {
 }
 
 module.exports = { handleJoin, handleLeave };
-

@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
-const Guild = require('../models').Guild;
+const { getModuleConfig } = require('./dbHelper');
 const User = require('../models').User;
 
 function getXpForLevel(level) { return 5 * (level ** 2) + 50 * level + 100; }
@@ -7,10 +7,12 @@ function getXpForLevel(level) { return 5 * (level ** 2) + 50 * level + 100; }
 async function handleMessage(message, client) {
   if (!message.guild || message.author.bot) return;
   try {
-    const guildData = await Guild.findOne({ guildId: message.guild.id });
-    if (!guildData?.modules?.leveling?.enabled) return;
+    // Nativer DB-Zugriff – liest Mixed-Typ korrekt
+    const cfg = await getModuleConfig(message.guild.id, 'leveling');
+    if (!cfg?.enabled) return;
 
-    const { xpPerMessage, xpCooldown, ignoredChannels, ignoredRoles, levelUpChannelId, levelUpMessage, levelRoles } = guildData.modules.leveling;
+    const { xpPerMessage, xpCooldown, ignoredChannels, ignoredRoles,
+            levelUpChannelId, levelUpMessage, levelRoles } = cfg;
     if (ignoredChannels?.includes(message.channel.id)) return;
     if (message.member && ignoredRoles?.some(r => message.member.roles.cache.has(r))) return;
 

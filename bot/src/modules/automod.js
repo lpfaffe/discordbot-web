@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
-const Guild = require('../models').Guild;
+const { getModuleConfig } = require('./dbHelper');
 const Warning = require('../models').Warning;
 
 // Anti-Spam Tracking
@@ -61,10 +61,11 @@ async function handle(message, client) {
   if (!message.guild || message.author.bot) return;
 
   try {
-    const guildData = await Guild.findOne({ guildId: message.guild.id });
-    if (!guildData || !guildData.modules.automod.enabled) return;
+    const automod = await getModuleConfig(message.guild.id, 'automod');
+    if (!automod?.enabled) return;
 
-    const { automod } = guildData.modules;
+    // Fake guildData-Objekt für applyAction Kompatibilität
+    const guildData = { modules: { automod, moderation: automod } };
     const member = message.member;
 
     // Ignorierte Channels und Rollen

@@ -110,10 +110,18 @@ export default function ModulePage() {
   // Frische Channel/Rollen-Daten direkt vom Bot holen (immer aktuell)
   const { data: channelData } = useQuery({
     queryKey: ['guild-channels', guildId],
-    queryFn: () => api.get(`/guilds/${guildId}/channels`).then(r => r.data).catch(() => null),
+    queryFn: async () => {
+      try {
+        const r = await api.get(`/guilds/${guildId}/channels`)
+        return r.data
+      } catch {
+        return null
+      }
+    },
     enabled: !!user && !!guildId,
     staleTime: 30_000,
-    retry: 1,
+    retry: 0,
+    throwOnError: false,
   })
 
   const { data: moduleData, isLoading } = useQuery({
@@ -156,7 +164,13 @@ export default function ModulePage() {
 
   // botInfo normalisieren: frische channelData hat Vorrang vor gecachtem guildData.botInfo
   const rawBotInfo = guildData?.botInfo
-  const mergedChannelData = channelData && !channelData.error ? channelData : null
+  // channelData ist gültig wenn keine error-Property ODER wenn trotz error Kanäle vorhanden sind
+  const mergedChannelData = channelData && (
+    !channelData.error ||
+    (channelData.voiceChannels?.length > 0) ||
+    (channelData.textChannels?.length > 0) ||
+    (channelData.categories?.length > 0)
+  ) ? channelData : null
 
   const botInfo = (rawBotInfo || mergedChannelData) ? {
     ...(rawBotInfo || {}),

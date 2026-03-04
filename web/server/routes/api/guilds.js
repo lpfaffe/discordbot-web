@@ -68,13 +68,19 @@ router.get('/', isAuthenticated, async (req, res) => {
 
 // ── Frische Kanal/Rollen-Daten direkt von Bot-API ─────────────
 // ACHTUNG: Muss VOR /:guildId stehen, damit "channels" nicht als guildId interpretiert wird
-router.get('/:guildId/channels', isAuthenticated, isGuildAdmin, async (req, res) => {
+// Nur isAuthenticated nötig – Guild-Berechtigung wurde bereits beim Dashboard-Aufruf geprüft
+router.get('/:guildId/channels', isAuthenticated, async (req, res) => {
   try {
     const { guildId } = req.params;
-    const botRes = await axios.get(`${BOT_API()}/guilds/${guildId}`,
-      { headers: botHeaders(), timeout: 5000 }
+    const BOT_URL = BOT_API();
+    const KEY     = BOT_KEY();
+    console.log(`[channels] ${guildId} → ${BOT_URL}, Key: ${KEY ? KEY.slice(0,8)+'...' : 'LEER!'}`);
+
+    const botRes = await axios.get(`${BOT_URL}/guilds/${guildId}`,
+      { headers: { 'x-api-key': KEY }, timeout: 5000 }
     );
     const d = botRes.data;
+    console.log(`[channels] OK – Voice:${d.voiceChannels?.length ?? 0} Cats:${d.categories?.length ?? 0} Text:${d.textChannels?.length ?? 0}`);
     res.json({
       channels:      d.channels      || [],
       categories:    d.categories    || [],
@@ -84,9 +90,9 @@ router.get('/:guildId/channels', isAuthenticated, isGuildAdmin, async (req, res)
       emojis:        d.emojis        || [],
     });
   } catch (e) {
-    console.warn('Bot channels Fehler:', e.message);
+    console.error(`[channels] FEHLER: ${e.message}`);
     res.json({
-      error: 'Bot nicht erreichbar.',
+      error: e.message,
       channels: [], categories: [], textChannels: [], voiceChannels: [], roles: [], emojis: []
     });
   }

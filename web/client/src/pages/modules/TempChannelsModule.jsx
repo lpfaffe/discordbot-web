@@ -1,35 +1,49 @@
 ﻿import { useState, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import ToggleSwitch from '../../components/ToggleSwitch'
 import api from '../../api/client'
 
 export default function TempChannelsModule({ config, onToggle, onSave, saving, botInfo, guildId }) {
-  // Frische Kanal-Daten direkt von der Bot-API holen
-  const { data: channelData, isLoading: channelsLoading } = useQuery({
+  const qc = useQueryClient()
+
+  // Immer frische Daten holen – staleTime 0 damit jedes Mal neu geladen wird
+  const {
+    data: channelData,
+    isLoading: channelsLoading,
+    refetch,
+    isError,
+  } = useQuery({
     queryKey: ['guild-channels', guildId],
-    queryFn: () => api.get(`/guilds/${guildId}/channels`).then(r => r.data),
+    queryFn: async () => {
+      const r = await api.get(`/guilds/${guildId}/channels`)
+      return r.data
+    },
     enabled: !!guildId,
-    staleTime: 30_000, // 30s cachen
+    staleTime: 0,        // immer neu laden
+    retry: 2,
+    throwOnError: false,
   })
 
-  // Fallback auf botInfo wenn frische Daten nicht verfügbar
-  const voiceChannels = channelData?.voiceChannels
-    ?? botInfo?.voiceChannels
-    ?? botInfo?.channels?.filter(c => [2, 13].includes(c.type))
-    ?? []
+  // Kanäle aus frischen Daten ODER Fallback aus botInfo
+  const voiceChannels =
+    (channelData && !channelData.error ? channelData.voiceChannels : null) ??
+    botInfo?.voiceChannels ??
+    botInfo?.channels?.filter(c => [2, 13].includes(c.type)) ??
+    []
 
-  const categories = channelData?.categories
-    ?? botInfo?.categories
-    ?? botInfo?.channels?.filter(c => c.type === 4)
-    ?? []
+  const categories =
+    (channelData && !channelData.error ? channelData.categories : null) ??
+    botInfo?.categories ??
+    botInfo?.channels?.filter(c => c.type === 4) ??
+    []
 
-  const botNotReachable = channelData?.error && voiceChannels.length === 0
+  const botNotReachable = !channelsLoading && (isError || channelData?.error) && voiceChannels.length === 0
 
   const [cfg, setCfg] = useState({
     categoryId:       config.categoryId       || '',
     triggerChannelId: config.triggerChannelId || '',
     channelName:      config.channelName      || "{user}'s Kanal",
-    userLimit:        config.userLimit        || 0
+    userLimit:        config.userLimit        || 0,
   })
 
   // Config-Updates übernehmen wenn sich config von außen ändert
@@ -38,12 +52,13 @@ export default function TempChannelsModule({ config, onToggle, onSave, saving, b
       categoryId:       config.categoryId       || '',
       triggerChannelId: config.triggerChannelId || '',
       channelName:      config.channelName      || "{user}'s Kanal",
-      userLimit:        config.userLimit        || 0
+      userLimit:        config.userLimit        || 0,
     })
   }, [config.categoryId, config.triggerChannelId, config.channelName, config.userLimit])
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between bg-discord-card rounded-xl p-5">
         <div>
           <h2 className="text-white font-semibold">🔊 Temporäre Kanäle</h2>
@@ -55,18 +70,38 @@ export default function TempChannelsModule({ config, onToggle, onSave, saving, b
       {config.enabled && (
         <div className="bg-discord-card rounded-xl p-5 space-y-4">
 
+          {/* Status-Zeile: Lade-Spinner oder Reload-Button */}
+          <div className="flex items-center justify-between">
+            <span className="text-discord-muted text-xs">
+              {channelsLoading
+                ? '⏳ Lade Kanäle vom Server...'
+                : botNotReachable
+                  ? `⚠️ Bot-API nicht erreichbar: ${channelData?.error || 'Timeout'}`
+                  : `✅ ${voiceChannels.length} Voice-Kanal(e), ${categories.length} Kategorie(n) geladen`
+              }
+            </span>
+            <button
+              onClick={() => { qc.invalidateQueries({ queryKey: ['guild-channels', guildId] }); refetch(); }}
+              disabled={channelsLoading}
+              className="text-xs text-discord hover:underline disabled:opacity-40"
+            >
+              🔄 Neu laden
+            </button>
+          </div>
+
           {/* Bot nicht erreichbar */}
           {botNotReachable && (
             <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-sm text-yellow-400">
-              ⚠️ Der Bot ist nicht auf diesem Server oder die Bot-API ist nicht erreichbar.
-              Kanäle und Kategorien können nicht geladen werden.
+              ⚠️ Der Bot ist nicht auf diesem Server erreichbar oder läuft nicht.
+              Kanäle können nicht geladen werden. Stelle sicher, dass der Bot läuft und auf dem Server ist.
             </div>
           )}
 
           {/* Trigger-Kanal */}
           <div>
             <label className="text-discord-muted text-sm block mb-1">
-              🎯 Trigger-Kanal <span className="text-xs">(Beitreten = neuen Kanal erstellen)</span>
+              🎯 Trigger-Kanal{' '}
+              <span className="text-xs">(Beitreten = neuen Kanal erstellen)</span>
             </label>
             <select
               value={cfg.triggerChannelId}
@@ -75,14 +110,10 @@ export default function TempChannelsModule({ config, onToggle, onSave, saving, b
               className="w-full bg-discord-sidebar text-white rounded-lg px-3 py-2 border border-white/10 outline-none text-sm disabled:opacity-60"
             >
               <option value="">— Kanal wählen —</option>
-              {channelsLoading && <option disabled>⏳ Lade Kanäle...</option>}
               {voiceChannels.map(c => (
                 <option key={c.id} value={c.id}>🔊 {c.name}</option>
               ))}
             </select>
-            {!channelsLoading && voiceChannels.length === 0 && !botNotReachable && (
-              <p className="text-discord-muted text-xs mt-1">Keine Voice-Kanäle gefunden.</p>
-            )}
           </div>
 
           {/* Kategorie */}
@@ -97,14 +128,10 @@ export default function TempChannelsModule({ config, onToggle, onSave, saving, b
               className="w-full bg-discord-sidebar text-white rounded-lg px-3 py-2 border border-white/10 outline-none text-sm disabled:opacity-60"
             >
               <option value="">— Keine Kategorie —</option>
-              {channelsLoading && <option disabled>⏳ Lade Kategorien...</option>}
               {categories.map(c => (
                 <option key={c.id} value={c.id}>📁 {c.name}</option>
               ))}
             </select>
-            {!channelsLoading && categories.length === 0 && !botNotReachable && (
-              <p className="text-discord-muted text-xs mt-1">Keine Kategorien gefunden.</p>
-            )}
           </div>
 
           {/* Kanalname */}

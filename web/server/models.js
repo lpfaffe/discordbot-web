@@ -38,7 +38,12 @@ const guildSchema = new mongoose.Schema({
   guildId:  { type: String, required: true, unique: true },
   name:     { type: String, default: '' },
   icon:     { type: String, default: null },
-  plan:     { type: String, default: 'free', enum: ['free','basic','standard','pro'] },
+  plan: {
+    type:      { type: String, default: 'free', enum: ['free','basic','standard','pro'] },
+    expiresAt: { type: Date, default: null },
+    setBy:     { type: String, default: null },
+    setAt:     { type: Date, default: null }
+  },
   teamMembers: [{
     discordId: String,
     username:  String,

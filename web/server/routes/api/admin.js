@@ -67,21 +67,48 @@ router.get('/plan/:guildId', isAuthenticated, isSuperAdmin, async (req, res) => 
 });
 
 router.patch('/plan/:guildId', isAuthenticated, isSuperAdmin, async (req, res) => {
-  const { type, expiresAt } = req.body;
-  const valid = ['free', 'basic', 'standard', 'pro'];
-  if (!valid.includes(type)) return res.status(400).json({ error: 'Ungültiger Plan.' });
-  const guild = await Guild.findOneAndUpdate(
-    { guildId: req.params.guildId },
-    { $set: { 'plan.type': type, 'plan.expiresAt': expiresAt || null, 'plan.setBy': req.user.discordId, 'plan.setAt': new Date() } },
-    { new: true, upsert: true }
-  );
-  res.json({ success: true, plan: guild.plan });
+  try {
+    const { type, expiresAt } = req.body;
+    const valid = ['free', 'basic', 'standard', 'pro'];
+    if (!valid.includes(type)) return res.status(400).json({ error: 'Ungültiger Plan.' });
+
+    const guildId = req.params.guildId;
+
+    // Zuerst prüfen ob das Dokument existiert und ggf. altes String-Plan-Feld migrieren
+    const existing = await Guild.findOne({ guildId });
+    if (existing && typeof existing.plan === 'string') {
+      // Altes String-Format → Objekt migrieren
+      await Guild.updateOne({ guildId }, { $set: { plan: { type: existing.plan, expiresAt: null, setBy: null, setAt: null } } });
+    }
+
+    const guild = await Guild.findOneAndUpdate(
+      { guildId },
+      { $set: { 'plan.type': type, 'plan.expiresAt': expiresAt || null, 'plan.setBy': req.user.discordId, 'plan.setAt': new Date() } },
+      { new: true, upsert: true }
+    );
+    res.json({ success: true, plan: guild.plan });
+  } catch (err) {
+    console.error('Plan setzen Fehler:', err);
+    res.status(500).json({ error: 'Interner Fehler: ' + err.message });
+  }
 });
 
 // Alle Guilds mit Plänen anzeigen
 router.get('/plans', isAuthenticated, isSuperAdmin, async (req, res) => {
-  const guilds = await Guild.find({}, 'guildId name icon plan teamMembers').lean();
-  res.json({ guilds });
+  try {
+    const guilds = await Guild.find({}, 'guildId name icon plan teamMembers').lean();
+    // Altes String-Format normalisieren
+    const normalized = guilds.map(g => ({
+      ...g,
+      plan: typeof g.plan === 'string'
+        ? { type: g.plan || 'free', expiresAt: null, setBy: null, setAt: null }
+        : (g.plan || { type: 'free' })
+    }));
+    res.json({ guilds: normalized });
+  } catch (err) {
+    console.error('Plans laden Fehler:', err);
+    res.status(500).json({ error: 'Interner Fehler: ' + err.message });
+  }
 });
 
 // ── Fehler-Reports ─────────────────────────────────────────────
@@ -131,7 +158,21 @@ router.get('/stats', isAuthenticated, isSuperAdmin, async (req, res) => {
     User.countDocuments(),
     Admin.findOne({})
   ]);
-  const planCounts = await Guild.aggregate([{ $group: { _id: '$plan.type', count: { $sum: 1 } } }]);
+  // plan.type kann ein Objekt oder ein String sein (Kompatibilität)
+  const planCounts = await Guild.aggregate([
+    {
+      $group: {
+        _id: {
+          $cond: {
+            if: { $eq: [{ $type: '$plan' }, 'string'] },
+            then: '$plan',
+            else: '$plan.type'
+          }
+        },
+        count: { $sum: 1 }
+      }
+    }
+  ]);
   res.json({
     guilds, users,
     bannedUsers:  admin?.bannedUsers?.length  || 0,

@@ -84,7 +84,7 @@ async function start() {
   await connectDB();
 
   const port = process.env.BOT_API_PORT || 3002;
-  const server = botApi.listen(port, () => {
+  const server = botApi.listen(port, '127.0.0.1', () => {
     console.log(`🤖 Bot API läuft auf Port ${port}`);
   });
   server.on('error', err => {

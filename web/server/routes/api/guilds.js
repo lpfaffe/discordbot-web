@@ -5,6 +5,11 @@ const axios = require('axios');
 const { Guild } = require('../../models');
 const { isAuthenticated, isGuildAdmin, isTeamAdmin } = require('../../middleware/auth');
 
+// Bot-API Basis-URL – aus .env oder Fallback
+const BOT_API = () => process.env.BOT_API_URL || `http://127.0.0.1:${process.env.BOT_API_PORT || 3002}`;
+const BOT_KEY = () => process.env.BOT_API_KEY || '';
+const botHeaders = () => ({ 'x-api-key': BOT_KEY() });
+
 // ── Alle Guilds des Users (Discord-Admin + Team-Mitglied) ─────
 router.get('/', isAuthenticated, async (req, res) => {
   try {
@@ -45,9 +50,8 @@ router.get('/', isAuthenticated, async (req, res) => {
     // Bot-Präsenz prüfen
     let botGuildIds = [];
     try {
-      const botRes = await axios.get(
-        `http://localhost:${process.env.BOT_API_PORT || 3002}/guilds`,
-        { headers: { 'x-api-key': process.env.BOT_API_KEY }, timeout: 2000 }
+      const botRes = await axios.get(`${BOT_API()}/guilds`,
+        { headers: botHeaders(), timeout: 3000 }
       );
       botGuildIds = botRes.data.guildIds ?? [];
     } catch {
@@ -80,9 +84,8 @@ router.get('/:guildId', isAuthenticated, isGuildAdmin, async (req, res) => {
 
     let botGuildInfo = null;
     try {
-      const botRes = await axios.get(
-        `http://localhost:${process.env.BOT_API_PORT || 3002}/guilds/${guildId}`,
-        { headers: { 'x-api-key': process.env.BOT_API_KEY }, timeout: 3000 }
+      const botRes = await axios.get(`${BOT_API()}/guilds/${guildId}`,
+        { headers: botHeaders(), timeout: 3000 }
       );
       botGuildInfo = botRes.data;
     } catch (e) {

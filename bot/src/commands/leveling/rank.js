@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { checkModule } = require('../../modules/commandHelper');
-const User = require('../../../../shared/models/User');
+const User = require('../../models').User;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,7 +21,7 @@ module.exports = {
 
     const xpForNext = 5 * (level ** 2) + 50 * level + 100;
     const progress = Math.min(100, Math.floor((xp / xpForNext) * 100));
-    const bar = '█'.repeat(Math.floor(progress / 5)) + '░'.repeat(20 - Math.floor(progress / 5));
+    const bar = 'â–ˆ'.repeat(Math.floor(progress / 5)) + 'â–‘'.repeat(20 - Math.floor(progress / 5));
 
     // Rang berechnen
     const allUsers = await User.find({});
@@ -31,14 +31,14 @@ module.exports = {
     const rank = sorted.findIndex(u => u.id === target.id) + 1;
 
     const embed = new EmbedBuilder()
-      .setTitle(`📊 Rang von ${target.username}`)
+      .setTitle(`ðŸ“Š Rang von ${target.username}`)
       .setThumbnail(target.displayAvatarURL({ size: 256 }))
       .setColor('#5865F2')
       .addFields(
-        { name: '🏆 Rang', value: `**#${rank || '?'}**`, inline: true },
-        { name: '⭐ Level', value: `**${level}**`, inline: true },
-        { name: '✨ XP', value: `**${xp}** / ${xpForNext}`, inline: true },
-        { name: `📈 Fortschritt (${progress}%)`, value: `\`${bar}\`` }
+        { name: 'ðŸ† Rang', value: `**#${rank || '?'}**`, inline: true },
+        { name: 'â­ Level', value: `**${level}**`, inline: true },
+        { name: 'âœ¨ XP', value: `**${xp}** / ${xpForNext}`, inline: true },
+        { name: `ðŸ“ˆ Fortschritt (${progress}%)`, value: `\`${bar}\`` }
       )
       .setTimestamp();
     interaction.reply({ embeds: [embed] });

@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { checkPermission, logAction } = require('../../modules/modHelpers');
-const Guild = require('../../../../shared/models/Guild');
+const Guild = require('../../models').Guild;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -25,10 +25,10 @@ module.exports = {
     const userWarnings = guildData.warnings.filter(w => w.userId === target.id);
     const count = userWarnings.length;
 
-    await interaction.reply({ content: `⚠️ **${target.username}** wurde verwarnt. (${count}. Verwarnung)\n📝 Grund: ${reason}` });
+    await interaction.reply({ content: `âš ï¸ **${target.username}** wurde verwarnt. (${count}. Verwarnung)\nðŸ“ Grund: ${reason}` });
     await logAction(interaction, 'warn', target, reason, `Gesamte Verwarnungen: ${count}`);
 
-    // Auto-Aktion prüfen
+    // Auto-Aktion prÃ¼fen
     const mod = guildData.modules?.moderation;
     const threshold = mod?.autoAction?.warnThreshold || 3;
     if (count >= threshold) {
@@ -38,7 +38,7 @@ module.exports = {
         if (action === 'ban' && member.bannable) await member.ban({ reason: `Auto-Ban nach ${count} Verwarnungen` });
         else if (action === 'kick' && member.kickable) await member.kick(`Auto-Kick nach ${count} Verwarnungen`);
         else if (action === 'mute' || action === 'timeout') await member.timeout(86400000, `Auto-Timeout nach ${count} Verwarnungen`).catch(() => {});
-        interaction.channel.send(`🤖 Auto-Aktion: **${target.username}** wurde nach **${count} Verwarnungen** automatisch **${action}**t.`).catch(() => {});
+        interaction.channel.send(`ðŸ¤– Auto-Aktion: **${target.username}** wurde nach **${count} Verwarnungen** automatisch **${action}**t.`).catch(() => {});
       }
     }
   }

@@ -1,25 +1,25 @@
-const Guild = require('../../../shared/models/Guild');
+const Guild = require('../models').Guild;
 const { EmbedBuilder } = require('discord.js');
 
 /**
- * Prüft ob ein Mitglied einen Moderationsbefehl ausführen darf.
- * Berücksichtigt allowedRoleId aus der DB-Konfiguration.
+ * PrÃ¼ft ob ein Mitglied einen Moderationsbefehl ausfÃ¼hren darf.
+ * BerÃ¼cksichtigt allowedRoleId aus der DB-Konfiguration.
  * @returns {string|null} Fehlermeldung oder null wenn erlaubt
  */
 async function checkPermission(interaction, commandId) {
   const guildData = await Guild.findOne({ guildId: interaction.guildId });
   const mod = guildData?.modules?.moderation;
 
-  if (!mod?.enabled) return '❌ Moderation-Modul ist deaktiviert.';
+  if (!mod?.enabled) return 'âŒ Moderation-Modul ist deaktiviert.';
 
   const cmdCfg = mod.commands?.[commandId];
-  if (cmdCfg && cmdCfg.enabled === false) return `❌ Der Befehl \`/${commandId}\` ist auf diesem Server deaktiviert.`;
+  if (cmdCfg && cmdCfg.enabled === false) return `âŒ Der Befehl \`/${commandId}\` ist auf diesem Server deaktiviert.`;
 
-  // Erlaubte Rolle gesetzt → prüfen
+  // Erlaubte Rolle gesetzt â†’ prÃ¼fen
   if (cmdCfg?.allowedRoleId) {
     if (!interaction.member.roles.cache.has(cmdCfg.allowedRoleId)) {
       const role = interaction.guild.roles.cache.get(cmdCfg.allowedRoleId);
-      return `❌ Du benötigst die Rolle **${role?.name || cmdCfg.allowedRoleId}** für diesen Befehl.`;
+      return `âŒ Du benÃ¶tigst die Rolle **${role?.name || cmdCfg.allowedRoleId}** fÃ¼r diesen Befehl.`;
     }
   }
 
@@ -50,10 +50,10 @@ async function logAction(interaction, commandId, target, reason, extra = '') {
 
   const embed = new EmbedBuilder()
     .setColor(actionColors[commandId] || 0x5865F2)
-    .setTitle(`🛡️ ${commandId.charAt(0).toUpperCase() + commandId.slice(1)}`)
+    .setTitle(`ðŸ›¡ï¸ ${commandId.charAt(0).toUpperCase() + commandId.slice(1)}`)
     .addFields(
       { name: 'Moderator', value: `<@${interaction.user.id}>`, inline: true },
-      { name: 'Ziel', value: target ? `<@${target.id}> (${target.tag || target.username})` : '—', inline: true },
+      { name: 'Ziel', value: target ? `<@${target.id}> (${target.tag || target.username})` : 'â€”', inline: true },
       { name: 'Grund', value: reason || 'Kein Grund angegeben', inline: false }
     )
     .setTimestamp();

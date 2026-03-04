@@ -1,10 +1,10 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
-const Warning = require('../../../../shared/models/Warning');
+const Warning = require('../../models').Warning;
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('clearwarnings')
-    .setDescription('Löscht alle Verwarnungen eines Users')
+    .setDescription('LÃ¶scht alle Verwarnungen eines Users')
     .addUserOption(o => o.setName('user').setDescription('Der User').setRequired(true))
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
@@ -15,7 +15,7 @@ module.exports = {
     await interaction.reply({
       embeds: [new EmbedBuilder()
         .setColor('#00FF00')
-        .setDescription(`✅ **${result.deletedCount}** Verwarnungen von **${target.tag}** gelöscht.`)
+        .setDescription(`âœ… **${result.deletedCount}** Verwarnungen von **${target.tag}** gelÃ¶scht.`)
         .setTimestamp()],
       ephemeral: true
     });

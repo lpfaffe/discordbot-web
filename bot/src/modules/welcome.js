@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
-const Guild = require('../../../shared/models/Guild');
+const Guild = require('../models').Guild;
 
 function replacePlaceholders(text, member, guild) {
   return text

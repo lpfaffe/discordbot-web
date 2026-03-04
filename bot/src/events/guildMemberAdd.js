@@ -1,6 +1,6 @@
 const welcomeModule = require('../modules/welcome');
 const inviteTracking = require('../modules/inviteTracking');
-const Guild = require('../../../shared/models/Guild');
+const Guild = require('../models').Guild;
 
 module.exports = {
   name: 'guildMemberAdd',

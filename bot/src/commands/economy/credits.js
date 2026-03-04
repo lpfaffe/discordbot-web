@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { checkModule } = require('../../modules/commandHelper');
-const User = require('../../../../shared/models/User');
+const User = require('../../models').User;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,13 +21,13 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setColor('#FEE75C')
-      .setTitle(`💰 Guthaben von ${target.username}`)
+      .setTitle(`ðŸ’° Guthaben von ${target.username}`)
       .setThumbnail(target.displayAvatarURL())
       .addFields(
-        { name: '💵 Guthaben', value: `**${userData.credits || 0}** Credits`, inline: true },
-        { name: '🏦 Bank', value: `**${userData.bank || 0}** Credits`, inline: true },
-        { name: '📊 Gesamt', value: `**${(userData.credits || 0) + (userData.bank || 0)}** Credits`, inline: true },
-        { name: '👍 Reputation', value: `**${userData.reputation || 0}**`, inline: true }
+        { name: 'ðŸ’µ Guthaben', value: `**${userData.credits || 0}** Credits`, inline: true },
+        { name: 'ðŸ¦ Bank', value: `**${userData.bank || 0}** Credits`, inline: true },
+        { name: 'ðŸ“Š Gesamt', value: `**${(userData.credits || 0) + (userData.bank || 0)}** Credits`, inline: true },
+        { name: 'ðŸ‘ Reputation', value: `**${userData.reputation || 0}**`, inline: true }
       )
       .setTimestamp();
     interaction.reply({ embeds: [embed] });

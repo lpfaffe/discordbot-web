@@ -1,23 +1,23 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const User = require('../../../../shared/models/User');
-const Guild = require('../../../../shared/models/Guild');
+const User = require('../../models').User;
+const Guild = require('../../models').Guild;
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('economy')
     .setDescription('Wirtschafts-Befehle')
     .addSubcommand(s => s.setName('balance').setDescription('Zeigt dein Guthaben'))
-    .addSubcommand(s => s.setName('daily').setDescription('Tägliche Coins abholen'))
-    .addSubcommand(s => s.setName('work').setDescription('Arbeite für Coins'))
-    .addSubcommand(s => s.setName('pay').setDescription('Überweisung an einen Nutzer')
-      .addUserOption(o => o.setName('nutzer').setDescription('Empfänger').setRequired(true))
+    .addSubcommand(s => s.setName('daily').setDescription('TÃ¤gliche Coins abholen'))
+    .addSubcommand(s => s.setName('work').setDescription('Arbeite fÃ¼r Coins'))
+    .addSubcommand(s => s.setName('pay').setDescription('Ãœberweisung an einen Nutzer')
+      .addUserOption(o => o.setName('nutzer').setDescription('EmpfÃ¤nger').setRequired(true))
       .addIntegerOption(o => o.setName('betrag').setDescription('Betrag').setRequired(true)))
     .addSubcommand(s => s.setName('leaderboard').setDescription('Coin-Rangliste')),
 
   async execute(interaction, client) {
     const guildData = await Guild.findOne({ guildId: interaction.guildId });
     if (!guildData?.modules?.economy?.enabled)
-      return interaction.reply({ content: '❌ Wirtschafts-Modul ist deaktiviert.', ephemeral: true });
+      return interaction.reply({ content: 'âŒ Wirtschafts-Modul ist deaktiviert.', ephemeral: true });
 
     const eco = guildData.modules.economy;
     const sub = interaction.options.getSubcommand();
@@ -42,7 +42,7 @@ module.exports = {
       const last = guildEco.lastDaily ? new Date(guildEco.lastDaily) : null;
       if (last && now - last < 86400000) {
         const next = new Date(last.getTime() + 86400000);
-        return interaction.reply({ content: `⏳ Du kannst wieder <t:${Math.floor(next.getTime()/1000)}:R> Coins abholen.`, ephemeral: true });
+        return interaction.reply({ content: `â³ Du kannst wieder <t:${Math.floor(next.getTime()/1000)}:R> Coins abholen.`, ephemeral: true });
       }
       guildEco.balance += eco.dailyAmount;
       guildEco.lastDaily = now;
@@ -54,20 +54,20 @@ module.exports = {
       const now = new Date();
       const last = guildEco.lastWork ? new Date(guildEco.lastWork) : null;
       if (last && now - last < 3600000) {
-        return interaction.reply({ content: `⏳ Du kannst in <t:${Math.floor((last.getTime()+3600000)/1000)}:R> wieder arbeiten.`, ephemeral: true });
+        return interaction.reply({ content: `â³ Du kannst in <t:${Math.floor((last.getTime()+3600000)/1000)}:R> wieder arbeiten.`, ephemeral: true });
       }
       const earned = eco.workAmount + Math.floor(Math.random() * eco.workAmount);
       guildEco.balance += earned;
       guildEco.lastWork = now;
       await User.findOneAndUpdate({ discordId: userId }, { $set: { [`economy.${interaction.guildId}`]: guildEco } }, { upsert: true });
-      return interaction.reply({ content: `💼 Du hast gearbeitet und **${earned} ${eco.currencyName}** verdient! Gesamt: **${guildEco.balance}**` });
+      return interaction.reply({ content: `ðŸ’¼ Du hast gearbeitet und **${earned} ${eco.currencyName}** verdient! Gesamt: **${guildEco.balance}**` });
     }
 
     if (sub === 'pay') {
       const target = interaction.options.getUser('nutzer');
       const amount = interaction.options.getInteger('betrag');
-      if (amount <= 0) return interaction.reply({ content: '❌ Betrag muss positiv sein.', ephemeral: true });
-      if (guildEco.balance < amount) return interaction.reply({ content: '❌ Nicht genug Guthaben.', ephemeral: true });
+      if (amount <= 0) return interaction.reply({ content: 'âŒ Betrag muss positiv sein.', ephemeral: true });
+      if (guildEco.balance < amount) return interaction.reply({ content: 'âŒ Nicht genug Guthaben.', ephemeral: true });
       guildEco.balance -= amount;
       await User.findOneAndUpdate({ discordId: userId }, { $set: { [`economy.${interaction.guildId}`]: guildEco } }, { upsert: true });
       let targetUser = await User.findOne({ discordId: target.id });
@@ -75,7 +75,7 @@ module.exports = {
       const targetEco = targetUser.economy?.get?.(interaction.guildId) || { balance: 0 };
       targetEco.balance += amount;
       await User.findOneAndUpdate({ discordId: target.id }, { $set: { [`economy.${interaction.guildId}`]: targetEco } }, { upsert: true });
-      return interaction.reply({ content: `${eco.currencyEmoji} Du hast **${amount} ${eco.currencyName}** an <@${target.id}> überwiesen!` });
+      return interaction.reply({ content: `${eco.currencyEmoji} Du hast **${amount} ${eco.currencyName}** an <@${target.id}> Ã¼berwiesen!` });
     }
 
     if (sub === 'leaderboard') {

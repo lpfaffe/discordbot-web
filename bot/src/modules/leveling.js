@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
-const Guild = require('../../../shared/models/Guild');
-const User = require('../../../shared/models/User');
+const Guild = require('../models').Guild;
+const User = require('../models').User;
 
 function getXpForLevel(level) { return 5 * (level ** 2) + 50 * level + 100; }
 
@@ -33,7 +33,7 @@ async function handleMessage(message, client) {
     let newXp = currentXp + xpGained;
     let newLevel = currentLevel;
 
-    // Level-Up prüfen
+    // Level-Up prÃ¼fen
     while (newXp >= getXpForLevel(newLevel)) {
       newXp -= getXpForLevel(newLevel);
       newLevel++;
@@ -43,7 +43,7 @@ async function handleMessage(message, client) {
         ? message.guild.channels.cache.get(levelUpChannelId)
         : message.channel;
       if (ch) {
-        const msg = (levelUpMessage || 'Glückwunsch {user}! Du bist auf Level {level} aufgestiegen!')
+        const msg = (levelUpMessage || 'GlÃ¼ckwunsch {user}! Du bist auf Level {level} aufgestiegen!')
           .replace('{user}', `<@${message.author.id}>`)
           .replace('{level}', newLevel);
         ch.send(msg).catch(console.error);

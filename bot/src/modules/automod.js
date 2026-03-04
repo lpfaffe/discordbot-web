@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
-const Guild = require('../../../shared/models/Guild');
-const Warning = require('../../../shared/models/Warning');
+const Guild = require('../models').Guild;
+const Warning = require('../models').Warning;
 
 // Anti-Spam Tracking
 const spamTracker = new Map();
@@ -21,7 +21,7 @@ async function applyAction(message, action, reason, guildData) {
         });
         message.channel.send({
           embeds: [new EmbedBuilder().setColor('#FFA500')
-            .setDescription(`⚠️ ${message.author} wurde verwarnt: **${reason}**`)]
+            .setDescription(`âš ï¸ ${message.author} wurde verwarnt: **${reason}**`)]
         }).then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
         break;
       case 'mute':
@@ -42,7 +42,7 @@ async function applyAction(message, action, reason, guildData) {
         logChannel.send({
           embeds: [new EmbedBuilder()
             .setColor('#FF0000')
-            .setTitle('🛡️ AutoMod Aktion')
+            .setTitle('ðŸ›¡ï¸ AutoMod Aktion')
             .addFields(
               { name: 'User', value: `${message.author.tag} (${message.author.id})`, inline: true },
               { name: 'Aktion', value: action, inline: true },
@@ -122,13 +122,13 @@ async function handle(message, client) {
     if (automod.capsFilter.enabled) {
       const content = message.content;
       if (content.length >= automod.capsFilter.minLength) {
-        const upperCount = (content.match(/[A-ZÄÖÜ]/g) || []).length;
-        const totalLetters = (content.match(/[a-zA-ZäöüÄÖÜ]/g) || []).length;
+        const upperCount = (content.match(/[A-ZÃ„Ã–Ãœ]/g) || []).length;
+        const totalLetters = (content.match(/[a-zA-ZÃ¤Ã¶Ã¼Ã„Ã–Ãœ]/g) || []).length;
         if (totalLetters > 0) {
           const capsPercent = (upperCount / totalLetters) * 100;
           if (capsPercent >= automod.capsFilter.threshold) {
             message.delete().catch(() => {});
-            await applyAction(message, automod.capsFilter.action, 'AutoMod: Zu viele Großbuchstaben', guildData);
+            await applyAction(message, automod.capsFilter.action, 'AutoMod: Zu viele GroÃŸbuchstaben', guildData);
             return;
           }
         }

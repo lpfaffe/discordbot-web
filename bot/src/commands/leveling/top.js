@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { checkModule } = require('../../modules/commandHelper');
-const User = require('../../../../shared/models/User');
+const User = require('../../models').User;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -8,10 +8,10 @@ module.exports = {
     .setDescription('Zeigt die Top-Mitglieder')
     .addStringOption(o => o.setName('typ').setDescription('Rangliste-Typ').setRequired(false)
       .addChoices(
-        { name: '⭐ XP / Level', value: 'xp' },
-        { name: '💰 Guthaben', value: 'credits' },
-        { name: '📊 Punkte', value: 'points' },
-        { name: '👍 Reputation', value: 'rep' }
+        { name: 'â­ XP / Level', value: 'xp' },
+        { name: 'ðŸ’° Guthaben', value: 'credits' },
+        { name: 'ðŸ“Š Punkte', value: 'points' },
+        { name: 'ðŸ‘ Reputation', value: 'rep' }
       )),
 
   async execute(interaction) {
@@ -31,20 +31,20 @@ module.exports = {
     else if (typ === 'rep') sorted = users.sort((a, b) => (b.reputation || 0) - (a.reputation || 0));
 
     const top = sorted.slice(0, 10);
-    const medals = ['🥇', '🥈', '🥉'];
+    const medals = ['ðŸ¥‡', 'ðŸ¥ˆ', 'ðŸ¥‰'];
 
     const fields = await Promise.all(top.map(async (u, i) => {
       const member = await interaction.guild.members.fetch(u.discordId).catch(() => null);
       const name = member?.user.username || `ID: ${u.discordId}`;
       let value = '';
-      if (typ === 'xp') value = `Level **${u.level?.[gid] || 0}** — ${u.xp?.[gid] || 0} XP`;
-      else if (typ === 'credits') value = `💰 **${u.credits || 0}** Credits`;
-      else if (typ === 'points') value = `📊 **${u.points?.[gid] || 0}** Punkte`;
-      else if (typ === 'rep') value = `👍 **${u.reputation || 0}** Rep`;
+      if (typ === 'xp') value = `Level **${u.level?.[gid] || 0}** â€” ${u.xp?.[gid] || 0} XP`;
+      else if (typ === 'credits') value = `ðŸ’° **${u.credits || 0}** Credits`;
+      else if (typ === 'points') value = `ðŸ“Š **${u.points?.[gid] || 0}** Punkte`;
+      else if (typ === 'rep') value = `ðŸ‘ **${u.reputation || 0}** Rep`;
       return { name: `${medals[i] || `**${i + 1}.**`} ${name}`, value, inline: false };
     }));
 
-    const titles = { xp: '⭐ XP-Rangliste', credits: '💰 Guthaben-Rangliste', points: '📊 Punkte-Rangliste', rep: '👍 Reputation-Rangliste' };
+    const titles = { xp: 'â­ XP-Rangliste', credits: 'ðŸ’° Guthaben-Rangliste', points: 'ðŸ“Š Punkte-Rangliste', rep: 'ðŸ‘ Reputation-Rangliste' };
     const embed = new EmbedBuilder().setTitle(titles[typ]).setColor('#5865F2').addFields(fields).setTimestamp();
     interaction.editReply({ embeds: [embed] });
   }

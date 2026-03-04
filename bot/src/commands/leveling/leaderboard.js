@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const User = require('../../../../shared/models/User');
+const User = require('../../models').User;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,17 +21,17 @@ module.exports = {
       .slice(0, 10);
 
     if (sorted.length === 0) {
-      return interaction.editReply('❌ Noch keine Daten vorhanden.');
+      return interaction.editReply('âŒ Noch keine Daten vorhanden.');
     }
 
-    const medals = ['🥇', '🥈', '🥉'];
+    const medals = ['ðŸ¥‡', 'ðŸ¥ˆ', 'ðŸ¥‰'];
     const description = sorted.map((u, i) =>
-      `${medals[i] || `**#${i + 1}**`} <@${u.id}> — Level **${u.data.level}** (${u.data.xp} XP) • ${u.data.totalMessages} Nachrichten`
+      `${medals[i] || `**#${i + 1}**`} <@${u.id}> â€” Level **${u.data.level}** (${u.data.xp} XP) â€¢ ${u.data.totalMessages} Nachrichten`
     ).join('\n');
 
     const embed = new EmbedBuilder()
       .setColor('#FFD700')
-      .setTitle(`🏆 Rangliste — ${interaction.guild.name}`)
+      .setTitle(`ðŸ† Rangliste â€” ${interaction.guild.name}`)
       .setDescription(description)
       .setThumbnail(interaction.guild.iconURL())
       .setTimestamp();

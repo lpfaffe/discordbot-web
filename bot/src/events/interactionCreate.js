@@ -1,11 +1,11 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
-const Guild = require('../../../shared/models/Guild');
+const Guild = require('../models').Guild;
 
 module.exports = {
   name: 'interactionCreate',
   async execute(interaction, client) {
 
-    // ── TICKET BUTTONS ─────────────────────────────────────────
+    // â”€â”€ TICKET BUTTONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (interaction.isButton() || interaction.isStringSelectMenu()) {
       const id = interaction.customId;
 
@@ -14,9 +14,9 @@ module.exports = {
         const typId = id.replace('ticket_create_', '');
         const guildData = await Guild.findOne({ guildId: interaction.guildId });
         const tickets = guildData?.modules?.tickets;
-        if (!tickets?.enabled) return interaction.reply({ content: '❌ Ticket-Modul deaktiviert.', ephemeral: true });
+        if (!tickets?.enabled) return interaction.reply({ content: 'âŒ Ticket-Modul deaktiviert.', ephemeral: true });
 
-        // Modal für Grund öffnen
+        // Modal fÃ¼r Grund Ã¶ffnen
         const modal = new ModalBuilder().setCustomId(`ticket_modal_${typId}`).setTitle('Ticket erstellen');
         modal.addComponents(
           new ActionRowBuilder().addComponents(
@@ -31,7 +31,7 @@ module.exports = {
         const typId = interaction.values[0];
         const guildData = await Guild.findOne({ guildId: interaction.guildId });
         const tickets = guildData?.modules?.tickets;
-        if (!tickets?.enabled) return interaction.reply({ content: '❌ Ticket-Modul deaktiviert.', ephemeral: true });
+        if (!tickets?.enabled) return interaction.reply({ content: 'âŒ Ticket-Modul deaktiviert.', ephemeral: true });
         const modal = new ModalBuilder().setCustomId(`ticket_modal_${typId}`).setTitle('Ticket erstellen');
         modal.addComponents(new ActionRowBuilder().addComponents(
           new TextInputBuilder().setCustomId('grund').setLabel('Beschreibe dein Anliegen').setStyle(TextInputStyle.Paragraph).setRequired(true).setMinLength(10).setMaxLength(500)
@@ -39,10 +39,10 @@ module.exports = {
         return interaction.showModal(modal);
       }
 
-      // Ticket schließen (Button im Ticket)
+      // Ticket schlieÃŸen (Button im Ticket)
       if (id === 'ticket_close_btn') {
         if (!interaction.channel.name.startsWith('ticket-') && !interaction.channel.topic?.includes('ticket-owner:'))
-          return interaction.reply({ content: '❌ Kein Ticket-Kanal.', ephemeral: true });
+          return interaction.reply({ content: 'âŒ Kein Ticket-Kanal.', ephemeral: true });
 
         const guildData = await Guild.findOne({ guildId: interaction.guildId });
         const tickets = guildData?.modules?.tickets;
@@ -55,7 +55,7 @@ module.exports = {
         if (tickets?.logChannelId) {
           const logCh = interaction.guild.channels.cache.get(tickets.logChannelId);
           const ownerMatch = (interaction.channel.topic || '').match(/ticket-owner:(\d+)/);
-          logCh?.send({ embeds: [new EmbedBuilder().setColor('#FF0000').setTitle('🔒 Ticket geschlossen')
+          logCh?.send({ embeds: [new EmbedBuilder().setColor('#FF0000').setTitle('ðŸ”’ Ticket geschlossen')
             .addFields(
               { name: 'Kanal', value: interaction.channel.name, inline: true },
               { name: 'Geschlossen von', value: interaction.user.username, inline: true },
@@ -69,13 +69,13 @@ module.exports = {
           const owner = ownerMatch ? await interaction.guild.members.fetch(ownerMatch[1]).catch(() => null) : null;
           if (owner) {
             const row = new ActionRowBuilder().addComponents(
-              ...[1,2,3,4,5].map(n => new ButtonBuilder().setCustomId(`ticket_rate_${n}`).setLabel('⭐'.repeat(n)).setStyle(ButtonStyle.Secondary))
+              ...[1,2,3,4,5].map(n => new ButtonBuilder().setCustomId(`ticket_rate_${n}`).setLabel('â­'.repeat(n)).setStyle(ButtonStyle.Secondary))
             );
             owner.send({ content: `Wie war dein Support-Erlebnis in **${interaction.channel.name}**?`, components: [row] }).catch(() => {});
           }
         }
 
-        await interaction.editReply({ content: '🔒 Ticket wird in 5 Sekunden geschlossen...' });
+        await interaction.editReply({ content: 'ðŸ”’ Ticket wird in 5 Sekunden geschlossen...' });
         setTimeout(() => interaction.channel.delete().catch(console.error), 5000);
         return;
       }
@@ -84,16 +84,16 @@ module.exports = {
       if (id === 'ticket_claim_btn') {
         await interaction.channel.permissionOverwrites.edit(interaction.user.id, { ViewChannel: true, SendMessages: true });
         await interaction.channel.setTopic((interaction.channel.topic || '') + ` | claimed:${interaction.user.id}`);
-        await interaction.channel.send({ embeds: [new EmbedBuilder().setColor('#00FF00').setDescription(`✅ **${interaction.user.username}** hat dieses Ticket beansprucht.`).setTimestamp()] });
-        return interaction.reply({ content: '✅ Ticket beansprucht!', ephemeral: true });
+        await interaction.channel.send({ embeds: [new EmbedBuilder().setColor('#00FF00').setDescription(`âœ… **${interaction.user.username}** hat dieses Ticket beansprucht.`).setTimestamp()] });
+        return interaction.reply({ content: 'âœ… Ticket beansprucht!', ephemeral: true });
       }
 
       // Wartestellung (Button)
       if (id === 'ticket_hold_btn') {
         const ownerMatch = (interaction.channel.topic || '').match(/ticket-owner:(\d+)/);
         if (ownerMatch) await interaction.channel.permissionOverwrites.edit(ownerMatch[1], { SendMessages: false });
-        await interaction.channel.send({ embeds: [new EmbedBuilder().setColor('#FFA500').setDescription('⏳ **Ticket auf Wartestellung gesetzt.**\nDer Support wartet auf weitere Informationen von dir.').setTimestamp()] });
-        return interaction.reply({ content: '✅ Wartestellung gesetzt.', ephemeral: true });
+        await interaction.channel.send({ embeds: [new EmbedBuilder().setColor('#FFA500').setDescription('â³ **Ticket auf Wartestellung gesetzt.**\nDer Support wartet auf weitere Informationen von dir.').setTimestamp()] });
+        return interaction.reply({ content: 'âœ… Wartestellung gesetzt.', ephemeral: true });
       }
 
       // Transcript Button
@@ -102,29 +102,29 @@ module.exports = {
         const { generateTranscript } = require('../commands/utility/ticket');
         const text = await generateTranscript(interaction.channel);
         const buf = Buffer.from(text, 'utf-8');
-        return interaction.editReply({ content: '✅ Transcript:', files: [{ attachment: buf, name: `transcript-${interaction.channel.name}.txt` }] });
+        return interaction.editReply({ content: 'âœ… Transcript:', files: [{ attachment: buf, name: `transcript-${interaction.channel.name}.txt` }] });
       }
 
       // Bewertung
       if (id.startsWith('ticket_rate_')) {
         const stars = parseInt(id.replace('ticket_rate_', ''));
-        await interaction.reply({ content: `✅ Danke für deine Bewertung: ${'⭐'.repeat(stars)}`, ephemeral: true });
+        await interaction.reply({ content: `âœ… Danke fÃ¼r deine Bewertung: ${'â­'.repeat(stars)}`, ephemeral: true });
         return;
       }
     }
 
-    // ── MODAL: Ticket Grund ────────────────────────────────────
+    // â”€â”€ MODAL: Ticket Grund â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (interaction.isModalSubmit() && interaction.customId.startsWith('ticket_modal_')) {
       const typId = interaction.customId.replace('ticket_modal_', '');
       const grund = interaction.fields.getTextInputValue('grund');
       const guildData = await Guild.findOne({ guildId: interaction.guildId });
       const tickets = guildData?.modules?.tickets;
-      if (!tickets?.enabled) return interaction.reply({ content: '❌ Ticket-Modul deaktiviert.', ephemeral: true });
+      if (!tickets?.enabled) return interaction.reply({ content: 'âŒ Ticket-Modul deaktiviert.', ephemeral: true });
       const { openTicket } = require('../commands/utility/ticket');
       return openTicket(interaction, tickets, typId, grund);
     }
 
-    // ── SLASH COMMANDS ─────────────────────────────────────────
+    // â”€â”€ SLASH COMMANDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (!interaction.isChatInputCommand()) return;
 
     const command = client.commands.get(interaction.commandName);
@@ -141,7 +141,7 @@ module.exports = {
       if (Date.now() < expiration) {
         const timeLeft = ((expiration - Date.now()) / 1000).toFixed(1);
         return interaction.reply({
-          embeds: [new EmbedBuilder().setColor('#FF0000').setDescription(`⏱️ Bitte warte noch **${timeLeft}s**.`)],
+          embeds: [new EmbedBuilder().setColor('#FF0000').setDescription(`â±ï¸ Bitte warte noch **${timeLeft}s**.`)],
           ephemeral: true
         });
       }
@@ -152,8 +152,8 @@ module.exports = {
     try {
       await command.execute(interaction, client);
     } catch (error) {
-      console.error(`❌ Fehler bei Command ${interaction.commandName}:`, error);
-      const errEmbed = new EmbedBuilder().setColor('#FF0000').setDescription('❌ Es ist ein Fehler aufgetreten!');
+      console.error(`âŒ Fehler bei Command ${interaction.commandName}:`, error);
+      const errEmbed = new EmbedBuilder().setColor('#FF0000').setDescription('âŒ Es ist ein Fehler aufgetreten!');
       if (interaction.replied || interaction.deferred) await interaction.followUp({ embeds: [errEmbed], ephemeral: true });
       else await interaction.reply({ embeds: [errEmbed], ephemeral: true });
     }

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const Guild = require('../../../../shared/models/Guild');
+const Guild = require('../../models').Guild;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -14,9 +14,9 @@ module.exports = {
   async execute(interaction, client) {
     const guildData = await Guild.findOne({ guildId: interaction.guildId });
     if (!guildData?.modules?.birthdays?.enabled)
-      return interaction.reply({ content: '❌ Geburtstags-Modul ist deaktiviert.', ephemeral: true });
+      return interaction.reply({ content: 'âŒ Geburtstags-Modul ist deaktiviert.', ephemeral: true });
 
-    const User = require('../../../../shared/models/User');
+    const User = require('../../models').User;
     const sub = interaction.options.getSubcommand();
 
     if (sub === 'set') {
@@ -27,15 +27,15 @@ module.exports = {
         { birthday: { day, month } },
         { upsert: true, new: true }
       );
-      return interaction.reply({ content: `🎂 Dein Geburtstag wurde auf **${day}.${month}.** gesetzt!`, ephemeral: true });
+      return interaction.reply({ content: `ðŸŽ‚ Dein Geburtstag wurde auf **${day}.${month}.** gesetzt!`, ephemeral: true });
     }
 
     if (sub === 'get') {
       const target = interaction.options.getUser('nutzer') || interaction.user;
       const user = await User.findOne({ discordId: target.id });
-      if (!user?.birthday) return interaction.reply({ content: `❌ ${target.username} hat keinen Geburtstag hinterlegt.`, ephemeral: true });
+      if (!user?.birthday) return interaction.reply({ content: `âŒ ${target.username} hat keinen Geburtstag hinterlegt.`, ephemeral: true });
       const embed = new EmbedBuilder()
-        .setTitle('🎂 Geburtstag')
+        .setTitle('ðŸŽ‚ Geburtstag')
         .setDescription(`**${target.username}** hat am **${user.birthday.day}.${user.birthday.month}.** Geburtstag!`)
         .setColor('#FF69B4').setThumbnail(target.displayAvatarURL());
       return interaction.reply({ embeds: [embed] });

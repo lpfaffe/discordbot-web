@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { checkModule, checkPerm } = require('../../modules/commandHelper');
-const User = require('../../../../shared/models/User');
+const User = require('../../models').User;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -24,7 +24,7 @@ module.exports = {
       { $set: { [`xp.${interaction.guildId}`]: xp, [`level.${interaction.guildId}`]: level } },
       { upsert: true }
     );
-    interaction.reply({ content: `✅ XP von **${target.username}** auf **${xp}** gesetzt. (Level ~${level})` });
+    interaction.reply({ content: `âœ… XP von **${target.username}** auf **${xp}** gesetzt. (Level ~${level})` });
   }
 };
 

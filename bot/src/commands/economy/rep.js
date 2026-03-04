@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { checkModule } = require('../../modules/commandHelper');
-const User = require('../../../../shared/models/User');
+const User = require('../../models').User;
 
 const REP_COOLDOWN = 24 * 60 * 60 * 1000; // 24h
 
@@ -16,9 +16,9 @@ module.exports = {
 
     const target = interaction.options.getUser('nutzer');
     if (target.id === interaction.user.id)
-      return interaction.reply({ content: '❌ Du kannst dir nicht selbst einen Reputationspunkt geben.', ephemeral: true });
+      return interaction.reply({ content: 'âŒ Du kannst dir nicht selbst einen Reputationspunkt geben.', ephemeral: true });
     if (target.bot)
-      return interaction.reply({ content: '❌ Du kannst keinem Bot Reputation geben.', ephemeral: true });
+      return interaction.reply({ content: 'âŒ Du kannst keinem Bot Reputation geben.', ephemeral: true });
 
     const giver = await User.findOneAndUpdate(
       { discordId: interaction.user.id },
@@ -32,7 +32,7 @@ module.exports = {
     if (remaining > 0) {
       const hours = Math.floor(remaining / 3600000);
       const mins  = Math.floor((remaining % 3600000) / 60000);
-      return interaction.reply({ content: `⏳ Du kannst erst in **${hours}h ${mins}m** wieder Reputation vergeben.`, ephemeral: true });
+      return interaction.reply({ content: `â³ Du kannst erst in **${hours}h ${mins}m** wieder Reputation vergeben.`, ephemeral: true });
     }
 
     const receiver = await User.findOneAndUpdate(
@@ -44,9 +44,9 @@ module.exports = {
 
     const embed = new EmbedBuilder()
       .setColor('#57F287')
-      .setTitle('👍 Reputation vergeben!')
+      .setTitle('ðŸ‘ Reputation vergeben!')
       .setDescription(`**${interaction.user.username}** hat **${target.username}** einen Reputationspunkt gegeben!`)
-      .addFields({ name: 'Gesamte Reputation', value: `**${receiver.reputation}** 👍` })
+      .addFields({ name: 'Gesamte Reputation', value: `**${receiver.reputation}** ðŸ‘` })
       .setTimestamp();
     interaction.reply({ embeds: [embed] });
   }

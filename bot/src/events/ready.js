@@ -2,13 +2,13 @@ module.exports = {
   name: 'clientReady',
   once: true,
   async execute(client) {
-    console.log(`✅ Bot eingeloggt als ${client.user.tag}`);
-    console.log(`📊 Verbunden mit ${client.guilds.cache.size} Server(n)`);
+    console.log(`âœ… Bot eingeloggt als ${client.user.tag}`);
+    console.log(`ðŸ“Š Verbunden mit ${client.guilds.cache.size} Server(n)`);
 
-    const Guild = require('../../../shared/models/Guild');
+    const Guild = require('../models').Guild;
     const inviteTracking = require('../modules/inviteTracking');
 
-    // ── Guilds synchronisieren + Invite-Cache ─────────────────
+    // â”€â”€ Guilds synchronisieren + Invite-Cache â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     for (const [, guild] of client.guilds.cache) {
       await Guild.findOneAndUpdate(
         { guildId: guild.id },
@@ -17,16 +17,16 @@ module.exports = {
       );
       await inviteTracking.cacheInvites(guild);
     }
-    console.log('✅ Guilds synchronisiert');
+    console.log('âœ… Guilds synchronisiert');
 
-    // ── Rotierende Presence ────────────────────────────────────
+    // â”€â”€ Rotierende Presence â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const getActivities = () => [
       { name: `${client.guilds.cache.size} Server`,         type: 3 },  // Watching
       { name: `/help | ${client.guilds.cache.size} Server`, type: 0 },  // Playing
       { name: `${client.users.cache.size} Nutzer`,          type: 3 },  // Watching
       { name: 'Dashboard: localhost:3001',                   type: 2 },  // Listening
       { name: `Ping: ${client.ws.ping}ms`,                  type: 0 },  // Playing
-      { name: '/help für Hilfe',                             type: 0 },  // Playing
+      { name: '/help fÃ¼r Hilfe',                             type: 0 },  // Playing
     ]
 
     let actIdx = 0
@@ -43,7 +43,7 @@ module.exports = {
     client.user.setPresence({ activities: [{ name: `${client.guilds.cache.size} Server`, type: 3 }], status: 'online' })
     setInterval(rotatePresence, 30000)
 
-    // ── Reminder-Loop (60s) ───────────────────────────────────
+    // â”€â”€ Reminder-Loop (60s) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     setInterval(async () => {
       try {
         const guilds = await Guild.find({ 'modules.reminders.enabled': true });
@@ -65,10 +65,10 @@ module.exports = {
       } catch (e) { console.error('Reminder Fehler:', e); }
     }, 60000);
 
-    // ── Geburtstags-Check (täglich) ───────────────────────────
+    // â”€â”€ Geburtstags-Check (tÃ¤glich) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const checkBirthdays = async () => {
       try {
-        const User = require('../../../shared/models/User');
+        const User = require('../models').User;
         const now = new Date();
         const users = await User.find({ 'birthday.day': now.getDate(), 'birthday.month': now.getMonth() + 1 });
         for (const user of users) {
@@ -79,7 +79,7 @@ module.exports = {
             const member = await guild.members.fetch(user.discordId).catch(() => null);
             if (!member) continue;
             const channel = guild.channels.cache.get(bd.channelId);
-            if (channel) channel.send((bd.message || '🎂 Alles Gute {user}!').replace('{user}', `<@${user.discordId}>`)).catch(console.error);
+            if (channel) channel.send((bd.message || 'ðŸŽ‚ Alles Gute {user}!').replace('{user}', `<@${user.discordId}>`)).catch(console.error);
             if (bd.roleId) {
               const role = guild.roles.cache.get(bd.roleId);
               if (role) { member.roles.add(role).catch(console.error); setTimeout(() => member.roles.remove(role).catch(console.error), 86400000); }
@@ -91,7 +91,7 @@ module.exports = {
     checkBirthdays();
     setInterval(checkBirthdays, 86400000);
 
-    // ── Statistik-Kanäle (10 Min) ─────────────────────────────
+    // â”€â”€ Statistik-KanÃ¤le (10 Min) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     setInterval(async () => {
       try {
         const guilds = await Guild.find({ 'modules.statChannels.enabled': true });

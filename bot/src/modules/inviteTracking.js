@@ -1,4 +1,4 @@
-const Guild = require('../../../shared/models/Guild');
+const Guild = require('../models').Guild;
 
 // Invite-Cache pro Guild: Map<guildId, Map<code, uses>>
 const inviteCache = new Map();
@@ -8,7 +8,7 @@ async function cacheInvites(guild) {
     const invites = await guild.invites.fetch();
     inviteCache.set(guild.id, new Map(invites.map(i => [i.code, i.uses])));
   } catch (e) {
-    // Bot hat keine Berechtigung – ignorieren
+    // Bot hat keine Berechtigung â€“ ignorieren
   }
 }
 
@@ -21,7 +21,7 @@ async function handleJoin(member) {
     const newInvites = await member.guild.invites.fetch();
     const oldInvites = inviteCache.get(member.guild.id) || new Map();
 
-    // Invite mit erhöhter uses-Zahl finden
+    // Invite mit erhÃ¶hter uses-Zahl finden
     const usedInvite = newInvites.find(i => {
       const oldUses = oldInvites.get(i.code) || 0;
       return i.uses > oldUses;

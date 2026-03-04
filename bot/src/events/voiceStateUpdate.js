@@ -1,4 +1,4 @@
-const Guild = require('../../../shared/models/Guild');
+const Guild = require('../models').Guild;
 const tempChannelMap = new Map(); // userId -> channelId
 
 module.exports = {
@@ -9,7 +9,7 @@ module.exports = {
       const tc = guildData?.modules?.tempChannels;
       if (!tc?.enabled || !tc.triggerChannelId) return;
 
-      // User tritt Trigger-Kanal bei → neuen Kanal erstellen
+      // User tritt Trigger-Kanal bei â†’ neuen Kanal erstellen
       if (newState.channelId === tc.triggerChannelId) {
         const name = (tc.channelName || "{user}'s Kanal").replace('{user}', newState.member.user.username);
         const channel = await newState.guild.channels.create({
@@ -23,7 +23,7 @@ module.exports = {
         tempChannelMap.set(newState.member.id, channel.id);
       }
 
-      // User verlässt einen temp-Kanal → löschen wenn leer
+      // User verlÃ¤sst einen temp-Kanal â†’ lÃ¶schen wenn leer
       if (oldState.channelId && oldState.channelId !== tc.triggerChannelId) {
         const ch = oldState.guild.channels.cache.get(oldState.channelId);
         if (ch && ch.members.size === 0 && [...tempChannelMap.values()].includes(ch.id)) {

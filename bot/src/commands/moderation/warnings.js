@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
-const Warning = require('../../../../shared/models/Warning');
+const Warning = require('../../models').Warning;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -17,19 +17,19 @@ module.exports = {
 
     if (warnings.length === 0) {
       return interaction.reply({
-        embeds: [new EmbedBuilder().setColor('#00FF00').setDescription(`✅ ${target.tag} hat keine Verwarnungen.`)],
+        embeds: [new EmbedBuilder().setColor('#00FF00').setDescription(`âœ… ${target.tag} hat keine Verwarnungen.`)],
         ephemeral: true
       });
     }
 
     const embed = new EmbedBuilder()
       .setColor('#FFA500')
-      .setTitle(`⚠️ Verwarnungen von ${target.tag}`)
+      .setTitle(`âš ï¸ Verwarnungen von ${target.tag}`)
       .setThumbnail(target.displayAvatarURL())
       .setDescription(warnings.map((w, i) =>
-        `**#${i + 1}** \`${w.type.toUpperCase()}\` - ${w.reason}\n👮 <@${w.moderatorId}> • ${new Date(w.createdAt).toLocaleDateString('de-DE')}`
+        `**#${i + 1}** \`${w.type.toUpperCase()}\` - ${w.reason}\nðŸ‘® <@${w.moderatorId}> â€¢ ${new Date(w.createdAt).toLocaleDateString('de-DE')}`
       ).join('\n\n'))
-      .setFooter({ text: `Gesamt: ${warnings.length} Einträge` })
+      .setFooter({ text: `Gesamt: ${warnings.length} EintrÃ¤ge` })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed], ephemeral: true });

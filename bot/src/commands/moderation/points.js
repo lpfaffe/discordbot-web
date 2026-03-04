@@ -1,13 +1,13 @@
 const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 
 const { checkPerm, checkModule } = require('../../modules/commandHelper');
-const User = require('../../../../shared/models/User');
+const User = require('../../models').User;
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('points')
-    .setDescription('Punkte-System für Moderatoren')
-    .addSubcommand(s => s.setName('add').setDescription('Punkte hinzufügen')
+    .setDescription('Punkte-System fÃ¼r Moderatoren')
+    .addSubcommand(s => s.setName('add').setDescription('Punkte hinzufÃ¼gen')
       .addUserOption(o => o.setName('nutzer').setDescription('Nutzer').setRequired(true))
       .addIntegerOption(o => o.setName('punkte').setDescription('Punkte').setRequired(true).setMinValue(1)))
     .addSubcommand(s => s.setName('remove').setDescription('Punkte entfernen')
@@ -49,7 +49,7 @@ module.exports = {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle(`📊 Punkte von ${target.username}`)
+      .setTitle(`ðŸ“Š Punkte von ${target.username}`)
       .setColor('#5865F2')
       .addFields({ name: 'Punkte', value: `**${sub === 'show' ? points : newPoints}**` })
       .setThumbnail(target.displayAvatarURL())

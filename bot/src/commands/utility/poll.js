@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const Guild = require('../../../../shared/models/Guild');
+const Guild = require('../../models').Guild;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -15,7 +15,7 @@ module.exports = {
   async execute(interaction, client) {
     const guildData = await Guild.findOne({ guildId: interaction.guildId });
     if (!guildData?.modules?.polls?.enabled)
-      return interaction.reply({ content: '❌ Umfrage-Modul ist deaktiviert.', ephemeral: true });
+      return interaction.reply({ content: 'âŒ Umfrage-Modul ist deaktiviert.', ephemeral: true });
 
     const frage = interaction.options.getString('frage');
     const options = [
@@ -25,14 +25,14 @@ module.exports = {
       interaction.options.getString('option4'),
     ].filter(Boolean);
 
-    const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣'];
+    const emojis = ['1ï¸âƒ£', '2ï¸âƒ£', '3ï¸âƒ£', '4ï¸âƒ£'];
     const dauer = interaction.options.getInteger('dauer') || 0;
 
     const embed = new EmbedBuilder()
-      .setTitle('📊 ' + frage)
+      .setTitle('ðŸ“Š ' + frage)
       .setDescription(options.map((o, i) => `${emojis[i]} ${o}`).join('\n\n'))
       .setColor('#5865F2')
-      .setFooter({ text: `Umfrage von ${interaction.user.username}${dauer ? ` • Endet in ${dauer} Minuten` : ''}` })
+      .setFooter({ text: `Umfrage von ${interaction.user.username}${dauer ? ` â€¢ Endet in ${dauer} Minuten` : ''}` })
       .setTimestamp();
 
     await interaction.reply({ embeds: [embed] });
@@ -51,7 +51,7 @@ module.exports = {
           }).sort((a, b) => b.count - a.count);
 
           const resultEmbed = new EmbedBuilder()
-            .setTitle('📊 Ergebnis: ' + frage)
+            .setTitle('ðŸ“Š Ergebnis: ' + frage)
             .setDescription(results.map((r, i) => `**${i+1}.** ${r.option}: **${r.count}** Stimmen`).join('\n'))
             .setColor('#57F287').setTimestamp();
           interaction.channel.send({ embeds: [resultEmbed] });

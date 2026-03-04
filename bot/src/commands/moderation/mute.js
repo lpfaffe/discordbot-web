@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { checkPermission, logAction } = require('../../modules/modHelpers');
-const Guild = require('../../../../shared/models/Guild');
+const Guild = require('../../models').Guild;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -18,7 +18,7 @@ module.exports = {
     const minutes = interaction.options.getInteger('minuten') || 0;
     const reason = interaction.options.getString('grund') || 'Kein Grund angegeben';
 
-    if (!target) return interaction.reply({ content: '❌ Nutzer nicht gefunden.', ephemeral: true });
+    if (!target) return interaction.reply({ content: 'âŒ Nutzer nicht gefunden.', ephemeral: true });
 
     // Discord Timeout (einfacher als Mute-Rolle)
     const duration = minutes > 0 ? minutes * 60 * 1000 : 28 * 24 * 60 * 60 * 1000;
@@ -31,7 +31,7 @@ module.exports = {
       if (muteRoleId) await target.roles.add(muteRoleId).catch(() => {});
     }
 
-    await interaction.reply({ content: `🔇 **${target.user.username}** wurde stumm geschaltet${minutes ? ` für ${minutes} Minuten` : ' (dauerhaft)'}.\n📝 Grund: ${reason}` });
+    await interaction.reply({ content: `ðŸ”‡ **${target.user.username}** wurde stumm geschaltet${minutes ? ` fÃ¼r ${minutes} Minuten` : ' (dauerhaft)'}.\nðŸ“ Grund: ${reason}` });
     await logAction(interaction, 'mute', target.user, reason, minutes ? `Dauer: ${minutes} Min` : 'Dauerhaft');
   }
 };

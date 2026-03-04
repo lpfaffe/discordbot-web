@@ -6,6 +6,14 @@ const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
 
+// ffmpeg-static Pfad setzen (für DisTube/Voice)
+try {
+  process.env.FFMPEG_PATH = require('ffmpeg-static');
+  console.log(`🎵 ffmpeg: ${process.env.FFMPEG_PATH}`);
+} catch (e) {
+  console.warn('⚠️ ffmpeg-static nicht gefunden, nutze System-ffmpeg');
+}
+
 // Bot Client
 const client = new Client({
   intents: [
@@ -28,6 +36,14 @@ client.cooldowns = new Collection();
 client.distube = new DisTube(client, {
   plugins: [new YtDlpPlugin({ update: false })],
   emitNewSongOnly: true,
+  ffmpeg: {
+    path: process.env.FFMPEG_PATH || 'ffmpeg',
+    args: {
+      global: { loglevel: 'quiet' },
+      input:  {},
+      output: { af: 'aresample=48000,asetrate=48000' }
+    }
+  }
 });
 
 // Anti-Spam Map

@@ -1,13 +1,14 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 
 module.exports = {
+  category: 'music',
   data: new SlashCommandBuilder()
     .setName('pause')
     .setDescription('Pausiert / Setzt die Musik fort'),
 
   async execute(interaction, client) {
     const queue = client.distube.getQueue(interaction.guild.id);
-    if (!queue) return interaction.reply({ content: '❌ Keine Musik läuft.', ephemeral: true });
+    if (!queue) return interaction.reply({ content: '❌ Keine Musik läuft.', flags: MessageFlags.Ephemeral });
 
     if (queue.paused) {
       queue.resume();
@@ -18,5 +19,3 @@ module.exports = {
     }
   }
 };
-
-

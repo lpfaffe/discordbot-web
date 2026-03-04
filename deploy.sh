@@ -25,6 +25,21 @@ step "Neueste Version holen..."
 git pull origin main || git pull origin master
 info "Code aktualisiert"
 
+# 1b. System-Abhängigkeiten für Musik prüfen
+step "System-Abhängigkeiten prüfen..."
+if ! command -v ffmpeg &>/dev/null; then
+  warn "ffmpeg nicht gefunden – installiere..."
+  apt-get install -y ffmpeg 2>/dev/null || warn "ffmpeg Installation fehlgeschlagen (sudo erforderlich)"
+else
+  info "ffmpeg: $(ffmpeg -version 2>&1 | head -1)"
+fi
+if ! command -v yt-dlp &>/dev/null; then
+  warn "yt-dlp nicht gefunden – installiere..."
+  pip3 install -U yt-dlp 2>/dev/null || pip install -U yt-dlp 2>/dev/null || warn "yt-dlp Installation fehlgeschlagen"
+else
+  info "yt-dlp: $(yt-dlp --version 2>/dev/null)"
+fi
+
 # 2. \r aus .env entfernen (Windows → Linux)
 for envfile in web/.env bot/.env; do
   if [ -f "$envfile" ]; then
@@ -86,8 +101,9 @@ if ! grep -q '^BOT_API_URL=' web/.env; then
 fi
 
 # 3. Dependencies
-step "Bot-Dependencies..."
+step "Bot-Dependencies (inkl. neue Voice-Pakete)..."
 npm install --prefix bot --omit=dev
+info "Bot npm install fertig"
 
 step "Web-Server-Dependencies..."
 npm install --prefix web --omit=dev

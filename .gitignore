@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Umgebungsvariablen – NIEMALS auf GitHub!
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Build-Outputs
+dist/
+build/
+web/client/dist/
+
+# Logs
+*.log
+logs/
+bot/logs/
+web/logs/
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# PM2
+.pm2/
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Bot alt
+bot/.env.old

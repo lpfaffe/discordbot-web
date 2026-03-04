@@ -1,0 +1,20 @@
+{
+  "name": "discordbot-web",
+  "version": "1.0.0",
+  "description": "Discord Bot Dashboard - MEE6 Style",
+  "private": true,
+  "workspaces": [
+    "bot",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=bot\" \"npm run dev --workspace=web\"",
+    "start": "concurrently \"npm run start --workspace=bot\" \"npm run start --workspace=web\"",
+    "install:all": "npm install && npm install --workspace=bot && npm install --workspace=web",
+    "build": "npm run build --workspace=web"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
+

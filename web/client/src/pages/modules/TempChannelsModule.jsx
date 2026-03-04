@@ -31,6 +31,12 @@ export default function TempChannelsModule({ config, onToggle, onSave, saving, b
     botInfo?.channels?.filter(c => [2, 13].includes(c.type)) ??
     []
 
+  const textChannels =
+    (channelData && !channelData.error ? channelData.textChannels : null) ??
+    botInfo?.textChannels ??
+    botInfo?.channels?.filter(c => c.type === 0) ??
+    []
+
   const categories =
     (channelData && !channelData.error ? channelData.categories : null) ??
     botInfo?.categories ??
@@ -42,6 +48,7 @@ export default function TempChannelsModule({ config, onToggle, onSave, saving, b
   const [cfg, setCfg] = useState({
     categoryId:       config.categoryId       || '',
     triggerChannelId: config.triggerChannelId || '',
+    controlChannelId: config.controlChannelId || '',
     channelName:      config.channelName      || "{user}'s Kanal",
     userLimit:        config.userLimit        || 0,
   })
@@ -51,10 +58,11 @@ export default function TempChannelsModule({ config, onToggle, onSave, saving, b
     setCfg({
       categoryId:       config.categoryId       || '',
       triggerChannelId: config.triggerChannelId || '',
+      controlChannelId: config.controlChannelId || '',
       channelName:      config.channelName      || "{user}'s Kanal",
       userLimit:        config.userLimit        || 0,
     })
-  }, [config.categoryId, config.triggerChannelId, config.channelName, config.userLimit])
+  }, [config.categoryId, config.triggerChannelId, config.controlChannelId, config.channelName, config.userLimit])
 
   return (
     <div className="space-y-6">
@@ -132,6 +140,29 @@ export default function TempChannelsModule({ config, onToggle, onSave, saving, b
                 <option key={c.id} value={c.id}>📁 {c.name}</option>
               ))}
             </select>
+          </div>
+
+          {/* Control-Channel */}
+          <div>
+            <label className="text-discord-muted text-sm block mb-1">
+              🎮 Voice-Control-Channel{' '}
+              <span className="text-xs">(Text-Kanal wo /voice-* Commands erlaubt sind)</span>
+            </label>
+            <select
+              value={cfg.controlChannelId}
+              onChange={e => setCfg(p => ({ ...p, controlChannelId: e.target.value }))}
+              disabled={channelsLoading}
+              className="w-full bg-discord-sidebar text-white rounded-lg px-3 py-2 border border-white/10 outline-none text-sm disabled:opacity-60"
+            >
+              <option value="">— Kein Control-Channel (überall erlaubt) —</option>
+              {textChannels.map(c => (
+                <option key={c.id} value={c.id}>💬 {c.name}</option>
+              ))}
+            </select>
+            <p className="text-xs text-discord-muted mt-1">
+              💡 Wenn gesetzt, können /voice-rename, /voice-lock etc. nur in diesem Kanal genutzt werden.
+              Beim Erstellen eines Temp-Kanals erscheint dort eine Übersicht aller Commands.
+            </p>
           </div>
 
           {/* Kanalname */}

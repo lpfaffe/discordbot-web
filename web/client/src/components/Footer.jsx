@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { FaDiscord, FaGithub, FaShieldAlt } from 'react-icons/fa'
 
+const DISCORD_SUPPORT = 'https://discord.gg/Uc93Pj7hG3'
+
 export default function Footer() {
   return (
     <footer className="bg-discord-sidebar border-t border-white/5 mt-auto">
@@ -40,6 +42,12 @@ export default function Footer() {
               <li><Link to="/" className="text-discord-muted hover:text-white text-sm transition">Startseite</Link></li>
               <li><Link to="/dashboard" className="text-discord-muted hover:text-white text-sm transition">Dashboard</Link></li>
               <li>
+                <a href={DISCORD_SUPPORT} target="_blank" rel="noreferrer"
+                  className="text-discord hover:text-white text-sm transition flex items-center gap-1 font-medium">
+                  <FaDiscord /> Support-Server
+                </a>
+              </li>
+              <li>
                 <a href="https://github.com/lpfaffe/discordbot-web" target="_blank" rel="noreferrer"
                   className="text-discord-muted hover:text-white text-sm transition flex items-center gap-1">
                   <FaGithub className="text-xs" /> GitHub
@@ -54,8 +62,13 @@ export default function Footer() {
           <p className="text-discord-muted text-xs">
             © {new Date().getFullYear()} Bot Dashboard – Alle Rechte vorbehalten
           </p>
+          <a href={DISCORD_SUPPORT} target="_blank" rel="noreferrer"
+            className="flex items-center gap-2 bg-discord/10 hover:bg-discord/20 border border-discord/30 text-discord px-4 py-2 rounded-full text-xs font-medium transition">
+            <FaDiscord className="text-sm" />
+            Bei Problemen → Discord Support
+          </a>
           <p className="text-discord-muted text-xs text-center">
-            ⚠️ Dieses Projekt befindet sich in aktiver Entwicklung. Nutzung auf eigene Gefahr.
+            ⚠️ Nur Testzwecke – Nutzung auf eigene Gefahr
           </p>
         </div>
       </div>

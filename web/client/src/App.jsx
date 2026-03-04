@@ -40,7 +40,7 @@ function AppContent() {
         </Routes>
       </main>
       <Footer />
-      {user && <BugReportButton />}
+      <BugReportButton />
     </div>
   )
 }

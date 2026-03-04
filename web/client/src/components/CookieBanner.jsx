@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
-import { FaCookieBite, FaShieldAlt, FaExternalLinkAlt } from 'react-icons/fa'
+import { FaCookieBite, FaShieldAlt, FaExternalLinkAlt, FaDiscord } from 'react-icons/fa'
+
+const DISCORD_SUPPORT = 'https://discord.gg/Uc93Pj7hG3'
 
 export default function CookieBanner() {
   const [show, setShow] = useState(false)
@@ -123,7 +125,7 @@ export default function CookieBanner() {
         </div>
 
         {/* Buttons */}
-        <div className="px-6 pb-6 flex gap-3">
+        <div className="px-6 pb-4 flex gap-3">
           <button
             onClick={decline}
             className="flex-1 py-3 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 text-sm transition"
@@ -136,6 +138,15 @@ export default function CookieBanner() {
           >
             ✅ Alles akzeptieren
           </button>
+        </div>
+
+        {/* Support Link */}
+        <div className="px-6 pb-5 text-center">
+          <a href={DISCORD_SUPPORT} target="_blank" rel="noreferrer"
+            className="inline-flex items-center gap-2 text-discord hover:text-white text-xs transition">
+            <FaDiscord />
+            Bei Fragen oder Problemen → Discord Support beitreten
+          </a>
         </div>
       </div>
     </div>

@@ -13,7 +13,7 @@ export default function Home() {
   const { user, login } = useAuth()
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-discord-bg">
       {/* Hero */}
       <section className="text-center py-24 px-4">
         <div className="max-w-3xl mx-auto">
@@ -61,4 +61,3 @@ export default function Home() {
     </div>
   )
 }
-

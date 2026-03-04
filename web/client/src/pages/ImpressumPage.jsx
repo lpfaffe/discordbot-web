@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
-import { FaArrowLeft } from 'react-icons/fa'
+import { FaArrowLeft, FaDiscord } from 'react-icons/fa'
+
+const DISCORD_SUPPORT = 'https://discord.gg/Uc93Pj7hG3'
 
 export default function ImpressumPage() {
   return (
@@ -28,7 +30,12 @@ export default function ImpressumPage() {
 
             <section>
               <h2 className="text-white font-semibold text-base mb-2">Kontakt</h2>
-              <p>Für Anfragen wende dich bitte über Discord an den Betreiber.</p>
+              <p className="mb-3">Für Anfragen, Probleme oder Fehler melde dich bitte direkt auf unserem Discord-Server:</p>
+              <a href={DISCORD_SUPPORT} target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-2 bg-discord/20 hover:bg-discord/30 border border-discord/30 text-discord px-4 py-2 rounded-lg text-sm font-medium transition">
+                <FaDiscord className="text-base" />
+                Discord Support-Server beitreten
+              </a>
             </section>
 
             <section>

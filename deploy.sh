@@ -116,16 +116,13 @@ fi
 
 # 6. PM2 neu starten
 step "Dienste neu starten..."
-# WICHTIG: restart (nicht reload) damit .env neu eingelesen wird!
-if pm2 list 2>/dev/null | grep -q "discord-bot\|web-server"; then
-  pm2 restart ecosystem.config.js --env production --update-env
-  pm2 save
-  info "PM2 neu gestartet (.env wird neu geladen)"
-else
-  pm2 start ecosystem.config.js --env production
-  pm2 save
-  info "PM2 gestartet"
-fi
+# Bei PM2-Fehlern (Process not found etc.) komplett neu starten
+pm2 delete discord-bot 2>/dev/null || true
+pm2 delete web-server  2>/dev/null || true
+sleep 1
+pm2 start ecosystem.config.js --env production
+pm2 save
+info "PM2 neu gestartet"
 
 # 7. Verbindungstest – mit Retry bis zu 30s warten
 step "Verbindungstests (warte auf Bot-Start, max 30s)..."

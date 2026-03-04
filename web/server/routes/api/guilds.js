@@ -70,17 +70,46 @@ router.get('/', isAuthenticated, async (req, res) => {
 router.get('/:guildId', isAuthenticated, isGuildAdmin, async (req, res) => {
   try {
     const { guildId } = req.params;
-    let guildData = await Guild.findOne({ guildId });
+    const mongoose = require('mongoose');
+    const col = mongoose.connection.collection('guilds');
 
-    if (!guildData) {
-      guildData = await Guild.create({
+    let rawDoc = await col.findOne({ guildId });
+
+    if (!rawDoc) {
+      // Neu anlegen
+      await Guild.create({
         guildId,
         name: req.userGuild?.name || guildId,
         icon: req.userGuild?.icon
           ? `https://cdn.discordapp.com/icons/${guildId}/${req.userGuild.icon}.png`
           : null
       });
+      rawDoc = await col.findOne({ guildId });
     }
+
+    // modules normalisieren: alte Boolean-Werte → { enabled: bool }
+    const rawModules = rawDoc?.modules || {};
+    const normalizedModules = {};
+    for (const [key, val] of Object.entries(rawModules)) {
+      if (typeof val === 'boolean') {
+        normalizedModules[key] = { enabled: val };
+      } else if (val && typeof val === 'object') {
+        normalizedModules[key] = val;
+      } else {
+        normalizedModules[key] = { enabled: false };
+      }
+    }
+
+    // plan normalisieren: alter String → Objekt
+    let plan = rawDoc?.plan || { type: 'free' };
+    if (typeof plan === 'string') plan = { type: plan };
+
+    const guildData = {
+      ...rawDoc,
+      _id: rawDoc?._id,
+      modules: normalizedModules,
+      plan,
+    };
 
     let botGuildInfo = null;
     try {

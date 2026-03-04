@@ -49,7 +49,7 @@ const guildSchema = new mongoose.Schema({
     username:  String,
     role:      { type: String, enum: ['admin','moderator','viewer'], default: 'viewer' }
   }],
-  modules: { type: Map, of: Boolean, default: {} },
+  modules: { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
   settings: { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }

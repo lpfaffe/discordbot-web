@@ -11,7 +11,7 @@ module.exports = {
       script: 'src/index.js',
       cwd: './bot',
       interpreter: 'node',
-      interpreter_args: '--require dotenv/config',
+      exec_mode: 'fork',
       instances: 1,
       autorestart: true,
       watch: false,
@@ -20,11 +20,9 @@ module.exports = {
       max_restarts: 10,
       env: {
         NODE_ENV: 'development',
-        DOTENV_CONFIG_PATH: './.env'
       },
       env_production: {
         NODE_ENV: 'production',
-        DOTENV_CONFIG_PATH: './.env'
       },
       error_file: './logs/bot-error.log',
       out_file: './logs/bot-out.log',
@@ -39,8 +37,7 @@ module.exports = {
       cwd: './web',
       interpreter: 'node',
       interpreter_args: '--require dotenv/config',
-      node_args: '--no-experimental-vm-modules',
-      instances: 1,
+      exec_mode: 'fork',
       autorestart: true,
       watch: false,
       max_memory_restart: '512M',

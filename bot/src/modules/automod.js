@@ -64,72 +64,77 @@ async function handle(message, client) {
     const automod = await getModuleConfig(message.guild.id, 'automod');
     if (!automod?.enabled) return;
 
-    // Fake guildData-Objekt für applyAction Kompatibilität
+    // Null-safe Defaults
+    const ignoredChannels = automod.ignoredChannels || [];
+    const ignoredRoles    = automod.ignoredRoles    || [];
+    const antiSpam   = automod.antiSpam   || {};
+    const antiLinks  = automod.antiLinks  || {};
+    const wordFilter = automod.wordFilter || {};
+    const capsFilter = automod.capsFilter || {};
+
     const guildData = { modules: { automod, moderation: automod } };
     const member = message.member;
 
-    // Ignorierte Channels und Rollen
-    if (automod.ignoredChannels.includes(message.channel.id)) return;
-    if (member && automod.ignoredRoles.some(r => member.roles.cache.has(r))) return;
-    // Admins ignorieren
+    if (ignoredChannels.includes(message.channel.id)) return;
+    if (member && ignoredRoles.some(r => member.roles.cache.has(r))) return;
     if (member && member.permissions.has('Administrator')) return;
 
     // === ANTI-SPAM ===
-    if (automod.antiSpam.enabled) {
+    if (antiSpam.enabled) {
       const key = `${message.guild.id}-${message.author.id}`;
       const now = Date.now();
+      const timeWindow = antiSpam.timeWindow || 5000;
       const tracker = spamTracker.get(key) || { messages: [], warned: false };
-      tracker.messages = tracker.messages.filter(t => now - t < automod.antiSpam.timeWindow);
+      tracker.messages = tracker.messages.filter(t => now - t < timeWindow);
       tracker.messages.push(now);
       spamTracker.set(key, tracker);
-      setTimeout(() => spamTracker.delete(key), automod.antiSpam.timeWindow * 2);
-
-      if (tracker.messages.length >= automod.antiSpam.maxMessages) {
+      setTimeout(() => spamTracker.delete(key), timeWindow * 2);
+      if (tracker.messages.length >= (antiSpam.maxMessages || 5)) {
         message.delete().catch(() => {});
-        await applyAction(message, automod.antiSpam.action, 'AutoMod: Spam erkannt', guildData);
+        await applyAction(message, antiSpam.action || 'warn', 'AutoMod: Spam erkannt', guildData);
         tracker.messages = [];
         return;
       }
     }
 
     // === ANTI-LINKS ===
-    if (automod.antiLinks.enabled) {
+    if (antiLinks.enabled) {
       const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
       const links = message.content.match(urlRegex);
       if (links) {
-        const isWhitelisted = automod.antiLinks.whitelist.some(w =>
-          links.some(l => l.includes(w))
-        );
+        const whitelist = antiLinks.whitelist || [];
+        const isWhitelisted = whitelist.some(w => links.some(l => l.includes(w)));
         if (!isWhitelisted) {
           message.delete().catch(() => {});
-          await applyAction(message, automod.antiLinks.action, 'AutoMod: Link erkannt', guildData);
+          await applyAction(message, antiLinks.action || 'warn', 'AutoMod: Link erkannt', guildData);
           return;
         }
       }
     }
 
     // === WORT-FILTER ===
-    if (automod.wordFilter.enabled && automod.wordFilter.words.length > 0) {
+    if (wordFilter.enabled && (wordFilter.words || []).length > 0) {
       const content = message.content.toLowerCase();
-      const found = automod.wordFilter.words.some(w => content.includes(w.toLowerCase()));
+      const found = wordFilter.words.some(w => content.includes(w.toLowerCase()));
       if (found) {
         message.delete().catch(() => {});
-        await applyAction(message, automod.wordFilter.action, 'AutoMod: Verbotenes Wort', guildData);
+        await applyAction(message, wordFilter.action || 'warn', 'AutoMod: Verbotenes Wort', guildData);
         return;
       }
     }
 
     // === CAPS-FILTER ===
-    if (automod.capsFilter.enabled) {
+    if (capsFilter.enabled) {
       const content = message.content;
-      if (content.length >= automod.capsFilter.minLength) {
-        const upperCount = (content.match(/[A-ZÃ„Ã–Ãœ]/g) || []).length;
-        const totalLetters = (content.match(/[a-zA-ZÃ¤Ã¶Ã¼Ã„Ã–Ãœ]/g) || []).length;
+      const minLength = capsFilter.minLength || 10;
+      if (content.length >= minLength) {
+        const upperCount = (content.match(/[A-ZÄÖÜ]/g) || []).length;
+        const totalLetters = (content.match(/[a-zA-ZäöüÄÖÜ]/g) || []).length;
         if (totalLetters > 0) {
           const capsPercent = (upperCount / totalLetters) * 100;
-          if (capsPercent >= automod.capsFilter.threshold) {
+          if (capsPercent >= (capsFilter.threshold || 70)) {
             message.delete().catch(() => {});
-            await applyAction(message, automod.capsFilter.action, 'AutoMod: Zu viele GroÃŸbuchstaben', guildData);
+            await applyAction(message, capsFilter.action || 'warn', 'AutoMod: Zu viele Großbuchstaben', guildData);
             return;
           }
         }

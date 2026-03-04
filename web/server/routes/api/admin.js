@@ -73,20 +73,27 @@ router.patch('/plan/:guildId', isAuthenticated, isSuperAdmin, async (req, res) =
     if (!valid.includes(type)) return res.status(400).json({ error: 'Ungültiger Plan.' });
 
     const guildId = req.params.guildId;
+    const mongoose = require('mongoose');
+    const collection = mongoose.connection.collection('guilds');
 
-    // Zuerst prüfen ob das Dokument existiert und ggf. altes String-Plan-Feld migrieren
-    const existing = await Guild.findOne({ guildId });
-    if (existing && typeof existing.plan === 'string') {
-      // Altes String-Format → Objekt migrieren
-      await Guild.updateOne({ guildId }, { $set: { plan: { type: existing.plan, expiresAt: null, setBy: null, setAt: null } } });
-    }
-
-    const guild = await Guild.findOneAndUpdate(
+    // Direkt mit nativem Treiber arbeiten – umgeht Mongoose-Schema-Validierung
+    // und kann auch String-Felder durch Objekte ersetzen
+    await collection.updateOne(
       { guildId },
-      { $set: { 'plan.type': type, 'plan.expiresAt': expiresAt || null, 'plan.setBy': req.user.discordId, 'plan.setAt': new Date() } },
-      { new: true, upsert: true }
+      {
+        $set: {
+          plan: {
+            type,
+            expiresAt: expiresAt || null,
+            setBy: req.user.discordId,
+            setAt: new Date()
+          }
+        }
+      },
+      { upsert: true }
     );
-    res.json({ success: true, plan: guild.plan });
+
+    res.json({ success: true, plan: { type, expiresAt: expiresAt || null } });
   } catch (err) {
     console.error('Plan setzen Fehler:', err);
     res.status(500).json({ error: 'Interner Fehler: ' + err.message });

@@ -38,7 +38,7 @@ function AppContent() {
           <Route path="/agb" element={<AGBPage />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
-      </div>
+      </main>
       <Footer />
       {user && <BugReportButton />}
     </div>
